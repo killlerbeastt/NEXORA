@@ -6,7 +6,7 @@
    ================================================================ */
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const NAV_LINKS = [
@@ -14,7 +14,7 @@ const NAV_LINKS = [
   { label: 'Games', href: '#games' },
 ];
 
-export default function Navigation() {
+const Navigation = memo(function Navigation() {
   const [visible, setVisible] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const lastScrollY = useRef(0);
@@ -86,4 +86,6 @@ export default function Navigation() {
       )}
     </AnimatePresence>
   );
-}
+});
+
+export default Navigation;

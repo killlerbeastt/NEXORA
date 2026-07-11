@@ -6,7 +6,7 @@
    ================================================================ */
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import { motion } from 'framer-motion';
 import { GAMES } from '@/lib/constants';
 import GameCard from './GameCard';
@@ -14,8 +14,20 @@ import GameModal from './GameModal';
 
 type GameItem = typeof GAMES[number];
 
-export default function GameShowcase() {
+const GameShowcase = memo(function GameShowcase() {
   const [selectedGame, setSelectedGame] = useState<GameItem | null>(null);
+
+  const launchHandlers = useMemo(() => {
+    const map: Record<string, () => void> = {};
+    GAMES.forEach(game => {
+      map[game.id] = () => setSelectedGame(game);
+    });
+    return map;
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setSelectedGame(null);
+  }, []);
 
   return (
     <section id="games" className="relative py-32 px-6">
@@ -54,7 +66,7 @@ export default function GameShowcase() {
               key={game.id}
               {...game}
               index={index}
-              onLaunch={() => setSelectedGame(game)}
+              onLaunch={launchHandlers[game.id]}
             />
           ))}
         </div>
@@ -78,7 +90,9 @@ export default function GameShowcase() {
       </div>
 
       {/* Cinematic In-Page Game Modal Overlay */}
-      <GameModal game={selectedGame} onClose={() => setSelectedGame(null)} />
+      <GameModal game={selectedGame} onClose={handleCloseModal} />
     </section>
   );
-}
+});
+
+export default GameShowcase;

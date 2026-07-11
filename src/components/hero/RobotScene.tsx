@@ -6,7 +6,7 @@
    ================================================================ */
 'use client';
 
-import { Suspense, useRef } from 'react';
+import { Suspense, useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { AdaptiveDpr, Preload } from '@react-three/drei';
 import {
@@ -23,6 +23,8 @@ import SceneEnvironment from './SceneEnvironment';
 import { getCursorState } from '@/hooks/useCursor';
 import { ANIMATION } from '@/lib/constants';
 import { lerp } from '@/lib/utils';
+
+const CHROMATIC_OFFSET = new THREE.Vector2(0.0006, 0.0006);
 
 /* ── Animated Camera ─────────────────────────────────────────── */
 function AnimatedCamera() {
@@ -59,67 +61,86 @@ function LoadingFallback() {
 
 /* ── Main Scene Canvas ───────────────────────────────────────── */
 export default function RobotScene() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(true);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setInView(entry.isIntersecting);
+      },
+      { threshold: 0 }
+    );
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <Canvas
-      camera={{
-        position: [0, 0.3, 4.2],
-        fov: 42,
-        near: 0.1,
-        far: 100,
-      }}
-      dpr={[1, 2]}
-      gl={{
-        antialias: true,
-        toneMapping: THREE.ACESFilmicToneMapping,
-        toneMappingExposure: 1.1,
-        alpha: true,
-      }}
-      style={{
-        position: 'absolute',
-        inset: 0,
-        width: '100%',
-        height: '100%',
-      }}
-    >
-      <AdaptiveDpr pixelated />
+    <div ref={containerRef} className="absolute inset-0 w-full h-full">
+      <Canvas
+        frameloop={inView ? 'always' : 'never'}
+        camera={{
+          position: [0, 0.3, 4.2],
+          fov: 42,
+          near: 0.1,
+          far: 100,
+        }}
+        dpr={[1, 1.5]}
+        gl={{
+          antialias: true,
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 1.1,
+          alpha: true,
+          powerPreference: 'high-performance',
+        }}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+        }}
+      >
+        <AdaptiveDpr pixelated />
 
-      <Suspense fallback={<LoadingFallback />}>
-        {/* Camera animation system */}
-        <AnimatedCamera />
+        <Suspense fallback={<LoadingFallback />}>
+          {/* Camera animation system */}
+          <AnimatedCamera />
 
-        {/* Cinematic lighting rig */}
-        <Lighting />
+          {/* Cinematic lighting rig */}
+          <Lighting />
 
-        {/* Immersive environment */}
-        <SceneEnvironment />
+          {/* Immersive environment */}
+          <SceneEnvironment />
 
-        {/* THE ROBOT — the soul of the site */}
-        <Robot />
+          {/* THE ROBOT — the soul of the site */}
+          <Robot />
 
-        {/* Post-processing effects */}
-        <EffectComposer multisampling={4}>
-          <Bloom
-            intensity={0.6}
-            luminanceThreshold={0.7}
-            luminanceSmoothing={0.3}
-            mipmapBlur
-          />
-          <Vignette
-            eskil={false}
-            offset={0.15}
-            darkness={0.7}
-            blendFunction={BlendFunction.NORMAL}
-          />
-          <ChromaticAberration
-            offset={new THREE.Vector2(0.0006, 0.0006)}
-            blendFunction={BlendFunction.NORMAL}
-            radialModulation={true}
-            modulationOffset={0.5}
-          />
-        </EffectComposer>
+          {/* Post-processing effects */}
+          <EffectComposer multisampling={0}>
+            <Bloom
+              intensity={0.6}
+              luminanceThreshold={0.7}
+              luminanceSmoothing={0.3}
+              mipmapBlur
+            />
+            <Vignette
+              eskil={false}
+              offset={0.15}
+              darkness={0.7}
+              blendFunction={BlendFunction.NORMAL}
+            />
+            <ChromaticAberration
+              offset={CHROMATIC_OFFSET}
+              blendFunction={BlendFunction.NORMAL}
+              radialModulation={true}
+              modulationOffset={0.5}
+            />
+          </EffectComposer>
 
-        <Preload all />
-      </Suspense>
-    </Canvas>
+          <Preload all />
+        </Suspense>
+      </Canvas>
+    </div>
   );
 }

@@ -96,6 +96,9 @@
         0 0 50px rgba(103,162,197,0.1),
         inset 0 0 30px rgba(0,0,0,0.6);
       display: block;
+      max-width: 100%;
+      height: auto;
+      max-height: 76vh;
     }
 
     /* ── Overlay ─────────────────────────────────────────── */
@@ -479,9 +482,20 @@ document.addEventListener('keydown', e => {
     if (state === 'dead') { restart(); } else { jump(); }
   }
 });
-canvas.addEventListener('click', () => {
+const triggerAction = (e) => {
+  e.preventDefault();
   if (state === 'dead') restart(); else jump();
-});
+};
+canvas.addEventListener('click', triggerAction);
+canvas.addEventListener('touchstart', triggerAction, { passive: false });
+document.addEventListener('touchstart', (e) => {
+  if (state === 'dead' || state === 'idle') {
+    // If tapping overlay buttons, let them handle it, otherwise flap
+    if (e.target.tagName !== 'BUTTON') triggerAction(e);
+  } else if (state === 'playing') {
+    triggerAction(e);
+  }
+}, { passive: false });
 
 function restart() {
   document.getElementById('go-screen').classList.add('hidden');
@@ -492,11 +506,20 @@ function restart() {
   document.getElementById('hdr-score').textContent = '0';
 }
 
-document.getElementById('start-btn').addEventListener('click', () => {
+const handleStart = (e) => {
+  if (e) e.preventDefault();
   document.getElementById('start-screen').classList.add('hidden');
   init(); state = 'playing';
-});
-document.getElementById('restart-btn').addEventListener('click', restart);
+};
+document.getElementById('start-btn').addEventListener('click', handleStart);
+document.getElementById('start-btn').addEventListener('touchstart', handleStart, { passive: false });
+
+const handleRestart = (e) => {
+  if (e) e.preventDefault();
+  restart();
+};
+document.getElementById('restart-btn').addEventListener('click', handleRestart);
+document.getElementById('restart-btn').addEventListener('touchstart', handleRestart, { passive: false });
 
 /* ── Boot ────────────────────────────────────────────────────── */
 init();

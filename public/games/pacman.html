@@ -232,6 +232,90 @@
       animation: blink 1.2s step-end infinite;
     }
     @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
+
+    /* ── Mobile Touch Controls & Responsiveness ─────────── */
+    #mobile-dpad {
+      display: none;
+      width: 100%;
+      max-width: 475px;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-top: 10px;
+      padding: 10px 16px;
+      background: rgba(13,8,6,0.85);
+      border: 1px solid rgba(255,182,166,0.2);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      z-index: 20;
+    }
+    @media (max-width: 768px), (pointer: coarse) {
+      #game-wrap {
+        flex-direction: column;
+        padding: 8px;
+        gap: 10px;
+        overflow-y: auto;
+      }
+      #pacman-canvas {
+        max-width: 100%;
+        height: auto;
+        max-height: 52vh;
+      }
+      #hud-panel {
+        width: 100%;
+        max-width: 475px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        padding: 12px;
+        gap: 8px;
+      }
+      .instructions {
+        display: none;
+      }
+      #mobile-dpad {
+        display: flex;
+      }
+    }
+    .dpad-left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .dpad-mid {
+      display: flex;
+      gap: 28px;
+    }
+    .dpad-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      background: rgba(255,182,166,0.15);
+      border: 1px solid rgba(255,182,166,0.3);
+      color: var(--cream);
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      transition: all 0.1s active;
+    }
+    .dpad-btn:active {
+      background: var(--peach);
+      color: var(--bg);
+      transform: scale(0.92);
+    }
+    .float-btn {
+      width: auto;
+      padding: 0 16px;
+      height: 56px;
+      font-family: var(--font-d);
+      font-size: 0.75rem;
+      background: linear-gradient(135deg, rgba(103,162,197,0.3), rgba(255,182,166,0.3));
+      border-color: var(--peach);
+      box-shadow: 0 0 15px rgba(255,182,166,0.3);
+    }
   </style>
 </head>
 <body>
@@ -280,6 +364,21 @@
         <span><kbd>←→</kbd> <kbd>↑↓</kbd> Move</span><br>
         <span><kbd>SPACE</kbd> Gravity float</span><br>
         <span style="display:block; margin-top:8px; color:var(--peach);">Float ignores walls but drifts! Don't run out of energy inside walls!</span>
+      </div>
+    </div>
+
+    <!-- Mobile Virtual D-Pad Overlay -->
+    <div id="mobile-dpad">
+      <div class="dpad-left">
+        <button class="dpad-btn" id="dpad-up">▲</button>
+        <div class="dpad-mid">
+          <button class="dpad-btn" id="dpad-left">◀</button>
+          <button class="dpad-btn" id="dpad-right">▶</button>
+        </div>
+        <button class="dpad-btn" id="dpad-down">▼</button>
+      </div>
+      <div class="dpad-right-action">
+        <button class="dpad-btn float-btn" id="dpad-float">🚀 FLOAT</button>
       </div>
     </div>
 
@@ -803,6 +902,51 @@ window.addEventListener('keydown', e => {
 window.addEventListener('keyup', e => {
   keys[e.key] = false;
 });
+
+/* ── Mobile Touch D-Pad & Swipe Controls ────────────────────────────────── */
+const dpadMap = { 'dpad-up': 1, 'dpad-down': 2, 'dpad-left': 3, 'dpad-right': 4 };
+Object.keys(dpadMap).forEach(id => {
+  const btn = document.getElementById(id);
+  if (btn) {
+    const setDir = (e) => {
+      e.preventDefault();
+      if (state === 'playing') pacman.nextDir = dpadMap[id];
+    };
+    btn.addEventListener('touchstart', setDir, { passive: false });
+    btn.addEventListener('mousedown', setDir);
+  }
+});
+const floatBtn = document.getElementById('dpad-float');
+if (floatBtn) {
+  const trigFloat = (e) => {
+    e.preventDefault();
+    if (state === 'playing') toggleAntiGravity();
+  };
+  floatBtn.addEventListener('touchstart', trigFloat, { passive: false });
+  floatBtn.addEventListener('mousedown', trigFloat);
+}
+
+// Touch swipe gestures on canvas
+let touchStartX = 0, touchStartY = 0;
+canvas.addEventListener('touchstart', e => {
+  if (e.touches.length > 0) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }
+}, { passive: true });
+
+canvas.addEventListener('touchmove', e => {
+  if (state !== 'playing' || e.touches.length === 0) return;
+  const dx = e.touches[0].clientX - touchStartX;
+  const dy = e.touches[0].clientY - touchStartY;
+  if (Math.abs(dx) > 25 || Math.abs(dy) > 25) {
+    if (Math.abs(dx) > Math.abs(dy)) {
+      pacman.nextDir = dx > 0 ? 4 : 3;
+    } else {
+      pacman.nextDir = dy > 0 ? 2 : 1;
+    }
+  }
+}, { passive: true });
 
 /* ── Toggle Anti-Gravity Mode ───────────────────────────────────────────── */
 function toggleAntiGravity() {

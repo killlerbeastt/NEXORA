@@ -16,7 +16,7 @@
    ================================================================ */
 'use client';
 
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { getCursorState } from '@/hooks/useCursor';
@@ -118,6 +118,8 @@ interface AnimState {
   fingerTimer: number;
 }
 
+const IDLE_ACTIONS: ('scanLeft' | 'scanRight' | 'neckStretch' | 'shoulderRoll')[] = ['scanLeft', 'scanRight', 'neckStretch', 'shoulderRoll'];
+
 export default function Robot() {
   const materials = useRobotMaterials();
 
@@ -157,8 +159,8 @@ export default function Robot() {
     fingerTimer: 0,
   });
 
-  // Click handler
-  useMemo(() => {
+  // Click handler (using useEffect with passive: true)
+  useEffect(() => {
     if (typeof window === 'undefined') return;
     const handleClick = (e: MouseEvent) => {
       const a = anim.current;
@@ -172,7 +174,7 @@ export default function Robot() {
       a.targetHeadYaw = nx * ANIMATION.headYawMax * 1.5;
       a.targetHeadPitch = ny * ANIMATION.headPitchMax * 1.5;
     };
-    window.addEventListener('click', handleClick);
+    window.addEventListener('click', handleClick, { passive: true });
     return () => window.removeEventListener('click', handleClick);
   }, []);
 
@@ -212,19 +214,29 @@ export default function Robot() {
       headRef.current.rotation.x = a.headPitch;
     }
 
-    // ── 5. Eye tracking (independent small offset) ──────────
+    // ── 5. Eye tracking (independent small offset without array allocations) ──────────
     const targetEyeX = clamp(cursor.nx * 0.04, -0.04, 0.04);
     const targetEyeY = clamp(cursor.ny * 0.025, -0.025, 0.025);
     a.eyeOffsetX = lerp(a.eyeOffsetX, targetEyeX, 0.08);
     a.eyeOffsetY = lerp(a.eyeOffsetY, targetEyeY, 0.08);
 
-    // Apply to eye meshes
-    [leftEyeRef, rightEyeRef, leftEyeInnerRef, rightEyeInnerRef].forEach(ref => {
-      if (ref.current) {
-        ref.current.position.x = ref.current.userData.baseX + a.eyeOffsetX;
-        ref.current.position.y = ref.current.userData.baseY + a.eyeOffsetY;
-      }
-    });
+    // Apply to eye meshes directly
+    if (leftEyeRef.current) {
+      leftEyeRef.current.position.x = leftEyeRef.current.userData.baseX + a.eyeOffsetX;
+      leftEyeRef.current.position.y = leftEyeRef.current.userData.baseY + a.eyeOffsetY;
+    }
+    if (rightEyeRef.current) {
+      rightEyeRef.current.position.x = rightEyeRef.current.userData.baseX + a.eyeOffsetX;
+      rightEyeRef.current.position.y = rightEyeRef.current.userData.baseY + a.eyeOffsetY;
+    }
+    if (leftEyeInnerRef.current) {
+      leftEyeInnerRef.current.position.x = leftEyeInnerRef.current.userData.baseX + a.eyeOffsetX;
+      leftEyeInnerRef.current.position.y = leftEyeInnerRef.current.userData.baseY + a.eyeOffsetY;
+    }
+    if (rightEyeInnerRef.current) {
+      rightEyeInnerRef.current.position.x = rightEyeInnerRef.current.userData.baseX + a.eyeOffsetX;
+      rightEyeInnerRef.current.position.y = rightEyeInnerRef.current.userData.baseY + a.eyeOffsetY;
+    }
 
     // ── 6. Blinking ─────────────────────────────────────────
     a.blinkTimer += delta;
@@ -243,10 +255,12 @@ export default function Robot() {
       const blinkScale = a.blinkProgress < 0.5
         ? 1 - (a.blinkProgress * 2)
         : (a.blinkProgress - 0.5) * 2;
+      const eyeScaleY = Math.max(0.05, blinkScale);
 
-      [leftEyeRef, rightEyeRef, leftEyeInnerRef, rightEyeInnerRef].forEach(ref => {
-        if (ref.current) ref.current.scale.y = Math.max(0.05, blinkScale);
-      });
+      if (leftEyeRef.current) leftEyeRef.current.scale.y = eyeScaleY;
+      if (rightEyeRef.current) rightEyeRef.current.scale.y = eyeScaleY;
+      if (leftEyeInnerRef.current) leftEyeInnerRef.current.scale.y = eyeScaleY;
+      if (rightEyeInnerRef.current) rightEyeInnerRef.current.scale.y = eyeScaleY;
     }
 
     // ── 7. Click reaction decay ─────────────────────────────
@@ -274,8 +288,7 @@ export default function Robot() {
     // ── 8. Extended idle animations ─────────────────────────
     a.idleTimer += delta;
     if (a.idleTimer > ANIMATION.idleDelay && a.idleAction === 'none') {
-      const actions: AnimState['idleAction'][] = ['scanLeft', 'scanRight', 'neckStretch', 'shoulderRoll'];
-      a.idleAction = actions[Math.floor(Math.random() * actions.length)];
+      a.idleAction = IDLE_ACTIONS[Math.floor(Math.random() * IDLE_ACTIONS.length)];
       a.idleProgress = 0;
     }
 

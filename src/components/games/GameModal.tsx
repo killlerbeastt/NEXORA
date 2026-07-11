@@ -6,7 +6,7 @@
    ================================================================ */
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAudio } from '@/hooks/useAudio';
 
@@ -23,7 +23,7 @@ interface GameModalProps {
   onClose: () => void;
 }
 
-export default function GameModal({ game, onClose }: GameModalProps) {
+const GameModal = memo(function GameModal({ game, onClose }: GameModalProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const audio = useAudio();
 
@@ -71,7 +71,7 @@ export default function GameModal({ game, onClose }: GameModalProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4 }}
-          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 md:p-8 bg-[rgba(5,5,8,0.85)] backdrop-blur-2xl"
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-0 sm:p-4 md:p-8 bg-[rgba(5,5,8,0.85)] backdrop-blur-2xl"
           onClick={onClose}
         >
           {/* Modal Container */}
@@ -80,38 +80,38 @@ export default function GameModal({ game, onClose }: GameModalProps) {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-5xl h-[85vh] flex flex-col rounded-2xl overflow-hidden glass-strong shadow-2xl border"
+            className="relative w-full h-full sm:max-w-5xl sm:h-[88vh] flex flex-col sm:rounded-2xl overflow-hidden glass-strong shadow-2xl sm:border border-0"
             style={{ borderColor: `${game.color}40` }}
             onClick={(e) => e.stopPropagation()} // Prevent outside click from closing when clicking inside
           >
             {/* Top Header Bar */}
             <div
-              className="flex items-center justify-between px-6 py-4 border-b shrink-0"
+              className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b shrink-0"
               style={{
                 borderColor: `${game.color}20`,
                 background: `linear-gradient(90deg, ${game.color}15, transparent)`,
               }}
             >
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 sm:gap-4">
                 <div
-                  className="w-3 h-3 rounded-full animate-pulse"
+                  className="w-3 h-3 rounded-full animate-pulse shrink-0"
                   style={{ background: game.color, boxShadow: `0 0 12px ${game.color}` }}
                 />
                 <div>
-                  <h3 className="text-lg font-bold tracking-wide leading-none text-[var(--text-primary)]">
+                  <h3 className="text-base sm:text-lg font-bold tracking-wide leading-none text-[var(--text-primary)]">
                     <span style={{ color: game.color }}>{game.title}</span> {game.subtitle}
                   </h3>
-                  <p className="text-[10px] font-mono text-[var(--text-muted)] mt-1 tracking-widest uppercase">
+                  <p className="text-[9px] sm:text-[10px] font-mono text-[var(--text-muted)] mt-1 tracking-widest uppercase">
                     ACTIVE ARCADE SESSION
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                {/* Pop Out Button */}
+              <div className="flex items-center gap-2 sm:gap-3">
+                {/* Pop Out Button (PC only) */}
                 <button
                   onClick={handlePopOut}
-                  className="px-3 py-1.5 rounded-lg text-xs font-mono tracking-wider border transition-all duration-200 flex items-center gap-1.5 hover:bg-white/5 text-[var(--text-secondary)] hover:text-white"
+                  className="hidden sm:flex px-3 py-1.5 rounded-lg text-xs font-mono tracking-wider border transition-all duration-200 items-center gap-1.5 hover:bg-white/5 text-[var(--text-secondary)] hover:text-white"
                   style={{ borderColor: 'rgba(255,255,255,0.1)' }}
                   title="Open in separate window"
                 >
@@ -124,7 +124,7 @@ export default function GameModal({ game, onClose }: GameModalProps) {
                     audio.hoverTick();
                     onClose();
                   }}
-                  className="w-9 h-9 rounded-lg border flex items-center justify-center text-sm font-bold transition-all duration-200 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/40 text-[var(--text-secondary)] border-white/10"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg border flex items-center justify-center text-sm font-bold transition-all duration-200 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/40 text-[var(--text-secondary)] border-white/10 shrink-0"
                   title="Close game (ESC)"
                 >
                   ✕
@@ -139,24 +139,24 @@ export default function GameModal({ game, onClose }: GameModalProps) {
                 src={game.file}
                 title={`${game.title} ${game.subtitle}`}
                 className="w-full h-full border-none outline-none"
-                allow="autoplay; fullscreen; keyboard"
+                allow="autoplay; fullscreen; keyboard; touch"
               />
             </div>
 
             {/* Bottom Controls Bar */}
             <div
-              className="flex flex-wrap items-center justify-between gap-4 px-6 py-3 border-t text-xs shrink-0 bg-black/40"
+              className="flex flex-wrap items-center justify-between gap-2 sm:gap-4 px-4 sm:px-6 py-2.5 sm:py-3 border-t text-xs shrink-0 bg-black/40"
               style={{ borderColor: `${game.color}15` }}
             >
-              <div className="flex items-center gap-3">
-                <span className="font-mono text-[10px] tracking-wider text-[var(--text-muted)] uppercase">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <span className="font-mono text-[9px] sm:text-[10px] tracking-wider text-[var(--text-muted)] uppercase">
                   CONTROLS:
                 </span>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   {game.controls.map((ctrl) => (
                     <span
                       key={ctrl}
-                      className="text-[10px] font-mono px-2 py-0.5 rounded border border-white/10 text-[var(--text-secondary)] bg-white/5"
+                      className="text-[9px] sm:text-[10px] font-mono px-2 py-0.5 rounded border border-white/10 text-[var(--text-secondary)] bg-white/5"
                     >
                       {ctrl}
                     </span>
@@ -164,8 +164,8 @@ export default function GameModal({ game, onClose }: GameModalProps) {
                 </div>
               </div>
 
-              <div className="text-[10px] font-mono text-[var(--text-muted)]">
-                Press <kbd className="px-1.5 py-0.5 rounded border border-white/20 text-white bg-white/10">ESC</kbd> or click ✕ to exit
+              <div className="text-[9px] sm:text-[10px] font-mono text-[var(--text-muted)]">
+                Press <kbd className="px-1.5 py-0.5 rounded border border-white/20 text-white bg-white/10">ESC</kbd> or tap ✕ to exit
               </div>
             </div>
           </motion.div>
@@ -173,4 +173,6 @@ export default function GameModal({ game, onClose }: GameModalProps) {
       )}
     </AnimatePresence>
   );
-}
+});
+
+export default GameModal;

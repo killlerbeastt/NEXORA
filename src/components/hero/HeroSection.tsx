@@ -6,7 +6,7 @@
    ================================================================ */
 'use client';
 
-import { useRef } from 'react';
+import { useRef, memo } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, type Variants } from 'framer-motion';
 
@@ -45,7 +45,7 @@ const fadeVariants: Variants = {
   },
 };
 
-export default function HeroSection() {
+const HeroSection = memo(function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null);
 
   return (
@@ -120,4 +120,6 @@ export default function HeroSection() {
       </motion.div>
     </section>
   );
-}
+});
+
+export default HeroSection;

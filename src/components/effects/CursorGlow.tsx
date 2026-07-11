@@ -6,7 +6,7 @@
    ================================================================ */
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
 
 export default function CursorGlow() {
@@ -19,7 +19,14 @@ export default function CursorGlow() {
   const dotRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
 
+  const [isTouch, setIsTouch] = useState(false);
+
   useEffect(() => {
+    if (window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window) {
+      setIsTouch(true);
+      return;
+    }
+
     const handleMouseMove = (e: MouseEvent) => {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
@@ -74,8 +81,7 @@ export default function CursorGlow() {
     };
   }, [cursorX, cursorY]);
 
-  // Hide on touch devices
-  if (typeof window !== 'undefined' && 'ontouchstart' in window) {
+  if (isTouch) {
     return null;
   }
 
@@ -84,7 +90,7 @@ export default function CursorGlow() {
       {/* Dot (center) */}
       <motion.div
         ref={dotRef}
-        className="fixed top-0 left-0 z-[9999] pointer-events-none mix-blend-difference"
+        className="hidden md:block fixed top-0 left-0 z-[9999] pointer-events-none mix-blend-difference"
         style={{
           x: springX,
           y: springY,
@@ -98,7 +104,7 @@ export default function CursorGlow() {
       {/* Ring (outer) */}
       <motion.div
         ref={ringRef}
-        className="fixed top-0 left-0 z-[9998] pointer-events-none"
+        className="hidden md:block fixed top-0 left-0 z-[9998] pointer-events-none"
         style={{
           x: springX,
           y: springY,

@@ -3,9 +3,10 @@
    ================================================================ */
 'use client';
 
+import { memo } from 'react';
 import { motion } from 'framer-motion';
 
-export default function Footer() {
+const Footer = memo(function Footer() {
   return (
     <footer className="relative py-16 px-6 border-t border-[rgba(255,255,255,0.04)]">
       {/* Gradient line at top */}
@@ -51,4 +52,6 @@ export default function Footer() {
       </motion.div>
     </footer>
   );
-}
+});
+
+export default Footer;
