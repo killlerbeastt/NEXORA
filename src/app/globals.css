@@ -1,0 +1,238 @@
+@import "tailwindcss";
+
+/* ================================================================
+   GLOBALS — Evolved Cinematic Dark Theme
+   ================================================================
+   Color palette: Deep Space + Electric Cyan + Warm Amber + Neon Violet
+   Typography: Geist Sans (display) + Geist Mono (code/HUD)
+   ================================================================ */
+
+/* ── CSS Custom Properties ─────────────────────────────────── */
+:root {
+  /* Background layers */
+  --bg-deep:    #050508;
+  --bg-dark:    #0A0B14;
+  --bg-card:    #12131F;
+  --bg-glass:   rgba(18, 19, 31, 0.6);
+
+  /* Primary — Electric Cyan */
+  --cyan:       #00F0FF;
+  --cyan-dim:   #00B4CC;
+  --cyan-glow:  rgba(0, 240, 255, 0.4);
+  --cyan-subtle: rgba(0, 240, 255, 0.08);
+
+  /* Secondary — Warm Amber */
+  --amber:      #FFB347;
+  --amber-dim:  #CC8A2E;
+  --amber-glow: rgba(255, 179, 71, 0.4);
+
+  /* Accent — Neon Violet */
+  --violet:     #A855F7;
+  --violet-dim: #7E3BD4;
+  --violet-glow: rgba(168, 85, 247, 0.4);
+
+  /* Text */
+  --text-primary:   #F0F0F5;
+  --text-secondary: #8A8BA3;
+  --text-muted:     #4A4B63;
+
+  /* Fonts */
+  --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), 'SF Mono', 'Fira Code', monospace;
+
+  /* Transitions */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-circ: cubic-bezier(0.85, 0, 0.15, 1);
+}
+
+/* ── Tailwind v4 Theme Tokens ──────────────────────────────── */
+@theme inline {
+  --color-background: var(--bg-dark);
+  --color-foreground: var(--text-primary);
+  --color-cyan: var(--cyan);
+  --color-amber: var(--amber);
+  --color-violet: var(--violet);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+/* ── Base Styles ───────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  cursor: none; /* We use custom cursor */
+}
+
+/* ── Custom Cursor (hidden native, rendered via React) ───── */
+a, button, [role="button"] {
+  cursor: none;
+}
+
+/* ── Selection Color ───────────────────────────────────────── */
+::selection {
+  background: rgba(0, 240, 255, 0.25);
+  color: var(--text-primary);
+}
+
+/* ── Scrollbar Styling ─────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cyan-dim);
+}
+
+/* ── Glassmorphism Utility ─────────────────────────────────── */
+.glass {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px) saturate(1.8);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.glass-strong {
+  background: rgba(18, 19, 31, 0.85);
+  backdrop-filter: blur(40px) saturate(2);
+  -webkit-backdrop-filter: blur(40px) saturate(2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ── Gradient Text Utility ─────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, var(--cyan) 0%, var(--violet) 50%, var(--amber) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-cyan {
+  background: linear-gradient(135deg, var(--cyan) 0%, #6EE7FA 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Glow Utilities ────────────────────────────────────────── */
+.glow-cyan {
+  box-shadow: 0 0 20px var(--cyan-glow), 0 0 60px rgba(0, 240, 255, 0.15);
+}
+
+.glow-amber {
+  box-shadow: 0 0 20px var(--amber-glow), 0 0 60px rgba(255, 179, 71, 0.15);
+}
+
+.glow-violet {
+  box-shadow: 0 0 20px var(--violet-glow), 0 0 60px rgba(168, 85, 247, 0.15);
+}
+
+/* ── Scanline Overlay ──────────────────────────────────────── */
+.scanlines::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  opacity: 0.5;
+}
+
+/* ── Film Grain Overlay ────────────────────────────────────── */
+.film-grain::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  animation: grain 0.5s steps(6) infinite;
+}
+
+@keyframes grain {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-2%, -3%); }
+  30% { transform: translate(3%, 1%); }
+  50% { transform: translate(-1%, 2%); }
+  70% { transform: translate(2%, -2%); }
+  90% { transform: translate(-3%, 1%); }
+}
+
+/* ── Animated Gradient Border ──────────────────────────────── */
+.gradient-border {
+  position: relative;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    var(--cyan) 0%,
+    transparent 40%,
+    transparent 60%,
+    var(--violet) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: borderRotate 8s linear infinite;
+}
+
+@keyframes borderRotate {
+  to { filter: hue-rotate(360deg); }
+}
+
+/* ── Smooth Section Transitions ────────────────────────────── */
+section {
+  will-change: transform, opacity;
+}
+
+/* ── Lenis Smooth Scroll ───────────────────────────────────── */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: clip;
+}

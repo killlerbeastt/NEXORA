@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ANTI-GRAVITY PAC-MAN — Arcade Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --peach: #FFB6A6;
+      --cream: #FFEBD3;
+      --blue:  #67A2C5;
+      --bg:    #0D0806;
+      --font-d: 'Orbitron', sans-serif;
+      --font-m: 'Share Tech Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--cream);
+      font-family: var(--font-m);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+      user-select: none;
+      cursor: url('cursor.svg') 16 16, crosshair;
+      background-image:
+        radial-gradient(ellipse at 80% 20%, rgba(103,162,197,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse at 20% 80%, rgba(255,182,166,0.06) 0%, transparent 60%);
+    }
+
+    /* ── Header ─────────────────────────────────────────── */
+    header {
+      width: 100%;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,182,166,0.15);
+      background: rgba(13,8,6,0.85);
+      backdrop-filter: blur(10px);
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .hdr-title {
+      font-family: var(--font-d);
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--peach);
+      letter-spacing: 0.12em;
+      text-shadow: 0 0 18px rgba(255,182,166,0.7);
+    }
+    .hdr-right { display: flex; gap: 16px; align-items: center; }
+    .hdr-score-block {
+      text-align: right;
+    }
+    .hdr-s-lbl {
+      font-size: 0.55rem;
+      letter-spacing: 0.2em;
+      color: rgba(255,182,166,0.5);
+    }
+    .hdr-s-val {
+      font-family: var(--font-d);
+      font-size: 1.1rem;
+      color: var(--cream);
+      text-shadow: 0 0 8px rgba(255,235,211,0.5);
+    }
+    .hdr-close {
+      background: transparent;
+      border: 1px solid rgba(255,182,166,0.3);
+      color: var(--peach);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-family: var(--font-m);
+      font-size: 0.75rem;
+      cursor: url('cursor.svg') 16 16, pointer;
+      transition: all 0.25s ease;
+    }
+    .hdr-close:hover { background: rgba(255,182,166,0.12); }
+
+    /* ── Game Layout ─────────────────────────────────────── */
+    #game-wrap {
+      position: relative;
+      flex: 1;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    #pacman-canvas {
+      border-radius: 14px;
+      border: 1px solid rgba(255,182,166,0.2);
+      box-shadow:
+        0 0 50px rgba(255,182,166,0.10),
+        inset 0 0 30px rgba(0,0,0,0.6);
+      background: #000;
+      display: block;
+    }
+
+    /* ── Side HUD Panel ─────────────────────────────────── */
+    #hud-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 180px;
+      background: rgba(22, 14, 10, 0.7);
+      border: 1px solid rgba(255,182,166,0.15);
+      border-radius: 14px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+    }
+    .hud-title {
+      font-family: var(--font-d);
+      font-size: 0.85rem;
+      color: var(--peach);
+      letter-spacing: 0.1em;
+    }
+    .hud-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .hud-label {
+      font-size: 0.55rem;
+      color: rgba(255,235,211,0.5);
+      letter-spacing: 0.2em;
+    }
+    .hud-val {
+      font-family: var(--font-d);
+      font-size: 1.4rem;
+      color: var(--cream);
+      text-shadow: 0 0 10px rgba(255,235,211,0.4);
+    }
+    
+    /* Anti-gravity Energy Meter */
+    .energy-bar-container {
+      width: 100%;
+      height: 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,182,166,0.3);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+    .energy-bar {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--blue), var(--peach));
+      box-shadow: 0 0 8px var(--peach);
+      transition: width 0.1s linear;
+    }
+    .energy-indicator {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.6rem;
+      color: var(--peach);
+    }
+
+    .instructions {
+      font-size: 0.65rem;
+      color: rgba(255,235,211,0.5);
+      line-height: 1.8;
+      border-top: 1px solid rgba(255,182,166,0.1);
+      padding-top: 12px;
+    }
+    kbd {
+      background: rgba(255,182,166,0.12);
+      border: 1px solid rgba(255,182,166,0.25);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: var(--peach);
+      font-family: var(--font-m);
+      font-size: 0.6rem;
+    }
+
+    /* ── Overlays ───────────────────────────────────────── */
+    .overlay {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(13,8,6,0.94);
+      border: 1px solid var(--peach);
+      border-radius: 14px;
+      padding: 28px 40px;
+      text-align: center;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 0 45px rgba(255,182,166,0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      min-width: 280px;
+    }
+    .overlay.hidden { display: none; }
+    .ov-h2 {
+      font-family: var(--font-d);
+      font-size: 1.8rem;
+      letter-spacing: 0.12em;
+      color: var(--peach);
+      text-shadow: 0 0 20px rgba(255,182,166,0.7);
+    }
+    .ov-sub {
+      font-size: 0.75rem;
+      color: rgba(255,235,211,0.6);
+      letter-spacing: 0.08em;
+      line-height: 1.5;
+    }
+    .ov-btn {
+      padding: 12px 32px;
+      font-family: var(--font-d);
+      font-size: 0.8rem;
+      letter-spacing: 0.18em;
+      color: var(--bg);
+      background: linear-gradient(135deg, var(--peach), #E8906E);
+      border: none;
+      border-radius: 8px;
+      cursor: url('cursor.svg') 16 16, pointer;
+      transition: all 0.25s;
+      box-shadow: 0 4px 20px rgba(255,182,166,0.4);
+    }
+    .ov-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(255,182,166,0.5); }
+    .flash-hint {
+      font-size: 0.7rem;
+      color: var(--blue);
+      animation: blink 1.2s step-end infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="hdr-title">ANTI-GRAVITY PAC-MAN</div>
+    <div class="hdr-right">
+      <div class="hdr-score-block">
+        <div class="hdr-s-lbl">BEST</div>
+        <div class="hdr-s-val" id="hdr-best">0</div>
+      </div>
+      <button class="hdr-close" onclick="window.close()">✕ CLOSE</button>
+    </div>
+  </header>
+
+  <div id="game-wrap">
+    <!-- Main game viewport: Grid size 19 columns x 21 rows -->
+    <!-- Grid size fits perfectly at 25px per cell = 475px width x 525px height -->
+    <canvas id="pacman-canvas" width="475" height="525"></canvas>
+
+    <!-- Sidebar HUD -->
+    <div id="hud-panel">
+      <div class="hud-item">
+        <span class="hud-label">SCORE</span>
+        <span class="hud-val" id="hud-score">0</span>
+      </div>
+      
+      <div class="hud-item">
+        <span class="hud-label">GRAVITY ENERGY</span>
+        <div class="energy-bar-container">
+          <div class="energy-bar" id="energy-bar"></div>
+        </div>
+        <div class="energy-indicator">
+          <span>0%</span>
+          <span id="energy-val">100%</span>
+        </div>
+      </div>
+
+      <div class="hud-item">
+        <span class="hud-label">LIVES</span>
+        <span class="hud-val" id="hud-lives">3</span>
+      </div>
+
+      <div class="instructions">
+        <span>Controls:</span><br>
+        <span><kbd>←→</kbd> <kbd>↑↓</kbd> Move</span><br>
+        <span><kbd>SPACE</kbd> Gravity float</span><br>
+        <span style="display:block; margin-top:8px; color:var(--peach);">Float ignores walls but drifts! Don't run out of energy inside walls!</span>
+      </div>
+    </div>
+
+    <!-- Start / Ready overlay -->
+    <div class="overlay" id="start-screen">
+      <div class="ov-h2">PAC-MAN</div>
+      <div class="ov-sub">Press <kbd>SPACE</kbd> to toggle Anti-Gravity.<br>Float through walls, but watch your energy meter!</div>
+      <div class="flash-hint">CLICK TO START THE SIMULATION</div>
+      <button class="ov-btn" id="start-btn">▶ LAUNCH</button>
+    </div>
+
+    <!-- Game over overlay -->
+    <div class="overlay hidden" id="go-screen">
+      <div class="ov-h2">GAME OVER</div>
+      <div class="ov-sub" id="go-score">Final Score: 0</div>
+      <button class="ov-btn" id="restart-btn">↺ RESTART</button>
+    </div>
+  </div>
+
+<script>
+/* ============================================================================
+   ANTI-GRAVITY PAC-MAN — Standalone Web Audio Synth Edition
+   ============================================================================
+   GAME PHYSICS & LOGIC EXPLANATIONS (for school project presentation):
+   ─────────────────────────────────────────────────────────────
+   1. GRID LAYOUT:
+      • The maze is a 19x22 2D array.
+      • 1 = Wall, 2 = Food Pellet, 3 = Power Pellet, 0 = Empty Corridor.
+
+   2. ANTI-GRAVITY FLOATING PHYSICS:
+      • Normal Mode: Grid-locked movement. Pac-Man moves strictly along
+        horizontal/vertical grid alignments and stops immediately at walls.
+      • Anti-Gravity Mode: True physics simulation (velocity + inertia).
+        Pac-Man escapes grid locking. Keys apply acceleration forces:
+          ax = forceX, ay = forceY
+          vx += ax; vy += ay;
+          vx *= drag; vy *= drag; (simulates friction/inertia)
+          x += vx; y += vy;
+        While floating, wall boundaries are ignored, allowing Pac-Man to slip
+        through solid barriers. However, energy drains by 0.5% per frame.
+        If energy reaches 0 inside a wall, he dies instantly!
+
+   3. GHOST AI (Pursuit & Frightened States):
+      • Blinky (Red): Targets Pac-Man's exact grid cell.
+      • Pinky (Pink): Targets 4 grid cells ahead of Pac-Man.
+      • Inky (Cyan): Targets a vector reflecting Blinky's relative offset.
+      • Clyde (Orange): Pursues if distance > 8 cells, otherwise scatters.
+      • Frightened (Blue): Ghosts wander randomly.
+   ============================================================================ */
+
+/* ── Web Audio Synthesizer (Mathematical SFX Generator) ──────────────────── */
+const SoundEffect = (() => {
+  let ctx = null;
+
+  function init() {
+    if (ctx) return;
+    // Create cross-browser Web Audio Context
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  return {
+    /**
+     * Waka-waka sound: two quick frequency pitch sweeps (opening and closing)
+     */
+    playWaka() {
+      init();
+      if (!ctx || ctx.state === 'suspended') return;
+
+      const time = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'triangle'; // Retro chiptune sound
+      osc.frequency.setValueAtTime(400, time);
+      // Sweeping frequency from 400Hz to 650Hz and back down in 0.08 seconds
+      osc.frequency.exponentialRampToValueAtTime(650, time + 0.04);
+      osc.frequency.exponentialRampToValueAtTime(300, time + 0.08);
+
+      gain.gain.setValueAtTime(0.08, time);
+      gain.gain.linearRampToValueAtTime(0.01, time + 0.08);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(time);
+      osc.stop(time + 0.08);
+    },
+
+    /**
+     * Power Pellet sound: higher-pitched rapid frequency sweep (high tension)
+     */
+    playPowerSweep() {
+      init();
+      if (!ctx) return;
+      const time = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(600, time);
+      osc.frequency.exponentialRampToValueAtTime(1400, time + 0.15);
+
+      gain.gain.setValueAtTime(0.06, time);
+      gain.gain.linearRampToValueAtTime(0.001, time + 0.15);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(time);
+      osc.stop(time + 0.15);
+    },
+
+    /**
+     * Eat ghost sound: low pitch noise crunch
+     */
+    playGhostEat() {
+      init();
+      if (!ctx) return;
+      const time = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(250, time);
+      osc.frequency.linearRampToValueAtTime(50, time + 0.25);
+
+      gain.gain.setValueAtTime(0.25, time);
+      gain.gain.linearRampToValueAtTime(0.01, time + 0.25);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(time);
+      osc.stop(time + 0.25);
+    },
+
+    /**
+     * Descending slide sound for Pac-Man dying
+     */
+    playDeath() {
+      init();
+      if (!ctx) return;
+      const time = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(800, time);
+      // Pitch slides downward over 0.8 seconds
+      osc.frequency.linearRampToValueAtTime(60, time + 0.8);
+
+      gain.gain.setValueAtTime(0.18, time);
+      gain.gain.linearRampToValueAtTime(0.001, time + 0.8);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(time);
+      osc.stop(time + 0.8);
+    },
+
+    /**
+     * Siren loop: background modulation tone
+     */
+    playSiren() {
+      init();
+      if (!ctx) return;
+      const time = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'triangle';
+      // Siren pitch rises and falls every 0.35 seconds
+      const baseFreq = 220;
+      osc.frequency.setValueAtTime(baseFreq, time);
+      osc.frequency.linearRampToValueAtTime(baseFreq + 80, time + 0.18);
+      osc.frequency.linearRampToValueAtTime(baseFreq, time + 0.35);
+
+      gain.gain.setValueAtTime(0.02, time);
+      gain.gain.linearRampToValueAtTime(0.001, time + 0.35);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(time);
+      osc.stop(time + 0.35);
+    }
+  };
+})();
+
+/* ── Maze Constants & Data Grid ─────────────────────────────────────────── */
+const COLS = 19;
+const ROWS = 21;
+const CS   = 25; // Cell size in pixels
+
+const INITIAL_MAZE = [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,3,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,3,1],
+  [1,2,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,2,1],
+  [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+  [1,2,1,1,2,1,2,1,1,1,1,1,2,1,2,1,1,2,1],
+  [1,2,2,2,2,1,2,2,2,1,2,2,2,1,2,2,2,2,1],
+  [1,1,1,1,2,1,1,1,0,1,0,1,1,1,2,1,1,1,1],
+  [0,0,0,1,2,1,0,0,0,0,0,0,0,1,2,1,0,0,0],
+  [1,1,1,1,2,1,0,1,1,0,1,1,0,1,2,1,1,1,1],
+  [0,0,0,0,2,0,0,1,0,0,0,1,0,0,2,0,0,0,0],
+  [1,1,1,1,2,1,0,1,1,1,1,1,0,1,2,1,1,1,1],
+  [0,0,0,1,2,1,0,0,0,0,0,0,0,1,2,1,0,0,0],
+  [1,1,1,1,2,1,0,1,1,1,1,1,0,1,2,1,1,1,1],
+  [1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,1],
+  [1,2,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,2,1],
+  [1,3,2,1,2,2,2,2,2,0,2,2,2,2,2,1,2,3,1],
+  [1,1,2,1,2,1,2,1,1,1,1,1,2,1,2,1,2,1,1],
+  [1,2,2,2,2,1,2,2,2,1,2,2,2,1,2,2,2,2,1],
+  [1,2,1,1,1,1,1,1,2,1,2,1,1,1,1,1,1,2,1],
+  [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+];
+
+/* Make a deep clone of the initial maze for restarts */
+let maze = JSON.parse(JSON.stringify(INITIAL_MAZE));
+
+/* ── Game Setup ─────────────────────────────────────────────────────────── */
+const canvas = document.getElementById('pacman-canvas');
+const ctx    = canvas.getContext('2d');
+
+let score = 0;
+let lives = 3;
+let bestScore = 0;
+let state = 'waiting'; // 'waiting' | 'playing' | 'dead' | 'gameover'
+let rafId;
+
+// Power Pellet mode state
+let frightenedTimer = 0;
+
+// Siren timer
+let sirenTimer = 0;
+
+/* ── Pac-Man Object ─────────────────────────────────────────────────────── */
+const pacman = {
+  // Pixel coordinates
+  x: 9 * CS + CS/2,
+  y: 15 * CS + CS/2,
+  speed: 2.0,
+  
+  // Directions: 0 = None, 1 = Up, 2 = Down, 3 = Left, 4 = Right
+  dir: 0,
+  nextDir: 0,
+  
+  // Mouth angle for chomping animation
+  mouthAngle: 0.2,
+  mouthSpeed: 0.015,
+
+  // Anti-gravity states
+  antiGravity: false,
+  energy: 1.0,           // 1.0 = 100% full
+  vx: 0,                 // Velocity vectors for drift physics
+  vy: 0,
+  acc: 0.16,             // Keyboard thrust force
+  drag: 0.94,            // Sliding friction damping
+  
+  reset() {
+    this.x = 9 * CS + CS/2;
+    this.y = 15 * CS + CS/2;
+    this.dir = 0;
+    this.nextDir = 0;
+    this.antiGravity = false;
+    this.vx = 0;
+    this.vy = 0;
+  }
+};
+
+/* ── Ghost Entities ─────────────────────────────────────────────────────── */
+class Ghost {
+  constructor(name, color, homeGridX, homeGridY, scatterX, scatterY) {
+    this.name = name;
+    this.color = color;
+    this.homeX = homeGridX * CS + CS/2;
+    this.homeY = homeGridY * CS + CS/2;
+    this.scatterTarget = { x: scatterX * CS + CS/2, y: scatterY * CS + CS/2 };
+    
+    this.reset();
+  }
+
+  reset() {
+    this.x = this.homeX;
+    this.y = this.homeY;
+    this.dir = 1; // Start moving Up
+    this.speed = 1.6;
+    this.mode = 'chase'; // 'chase' | 'scatter' | 'frightened' | 'eaten'
+    this.eatenDest = { x: 9 * CS + CS/2, y: 9 * CS + CS/2 };
+  }
+
+  update() {
+    // If eaten, move super fast back to spawn house
+    if (this.mode === 'eaten') {
+      this.speed = 4.0;
+      const dx = this.eatenDest.x - this.x;
+      const dy = this.eatenDest.y - this.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      
+      if (dist < 4) {
+        this.mode = 'chase';
+        this.speed = 1.6;
+      } else {
+        this.x += (dx/dist) * this.speed;
+        this.y += (dy/dist) * this.speed;
+      }
+      return;
+    }
+
+    // Normal ghost movement logic: Align to grid center to change directions
+    const centerOffset = CS / 2;
+    const gx = Math.floor(this.x / CS);
+    const gy = Math.floor(this.y / CS);
+    const onCenter = (Math.abs((this.x % CS) - centerOffset) < this.speed) && 
+                     (Math.abs((this.y % CS) - centerOffset) < this.speed);
+
+    if (onCenter) {
+      this.x = gx * CS + centerOffset;
+      this.y = gy * CS + centerOffset;
+
+      // Choose next path direction
+      const options = [];
+      // Up
+      if (this.dir !== 2 && gy > 0 && maze[gy-1][gx] !== 1) options.push(1);
+      // Down
+      if (this.dir !== 1 && gy < ROWS-1 && maze[gy+1][gx] !== 1) options.push(2);
+      // Left
+      if (this.dir !== 4 && gx > 0 && maze[gy][gx-1] !== 1) options.push(3);
+      // Right
+      if (this.dir !== 3 && gx < COLS-1 && maze[gy][gx+1] !== 1) options.push(4);
+
+      if (options.length > 0) {
+        if (this.mode === 'frightened') {
+          // Wander completely randomly in frightened mode
+          this.dir = options[Math.floor(Math.random() * options.length)];
+        } else {
+          // Normal AI target calculations
+          const target = this.getTarget();
+          let bestDir = options[0];
+          let bestDist = Infinity;
+
+          for (const o of options) {
+            let nextGx = gx, nextGy = gy;
+            if (o === 1) nextGy--;
+            if (o === 2) nextGy++;
+            if (o === 3) nextGx--;
+            if (o === 4) nextGx++;
+
+            const dx = target.x - (nextGx * CS + centerOffset);
+            const dy = target.y - (nextGy * CS + centerOffset);
+            const dist = dx*dx + dy*dy;
+
+            if (dist < bestDist) {
+              bestDist = dist;
+              bestDir = o;
+            }
+          }
+          this.dir = bestDir;
+        }
+      }
+    }
+
+    // Speed adjustments
+    this.speed = (this.mode === 'frightened') ? 1.0 : 1.6;
+
+    // Translate coordinates
+    if (this.dir === 1) this.y -= this.speed;
+    if (this.dir === 2) this.y += this.speed;
+    if (this.dir === 3) this.x -= this.speed;
+    if (this.dir === 4) this.x += this.speed;
+
+    // Wrap-around paths
+    if (this.x < 0) this.x = W - CS/2;
+    if (this.x > W) this.x = CS/2;
+  }
+
+  getTarget() {
+    if (this.mode === 'scatter') return this.scatterTarget;
+
+    const px = pacman.x;
+    const py = pacman.y;
+
+    if (this.name === 'blinky') {
+      // Direct pursuit (Red Ghost targets Pac-Man directly)
+      return { x: px, y: py };
+    }
+    
+    if (this.name === 'pinky') {
+      // Ambush (Pink Ghost targets 4 grid squares in front of Pac-Man)
+      let offset = 4 * CS;
+      if (pacman.dir === 1) return { x: px - offset, y: py - offset }; // classic overflow bug mimicry
+      if (pacman.dir === 2) return { x: px, y: py + offset };
+      if (pacman.dir === 3) return { x: px - offset, y: py };
+      if (pacman.dir === 4) return { x: px + offset, y: py };
+      return { x: px, y: py };
+    }
+
+    if (this.name === 'inky') {
+      // Offset vector targeting (Cyan utilizes Blinky's relative position)
+      const blinky = ghosts[0];
+      const pivotX = px + (pacman.dir === 4 ? 2*CS : (pacman.dir === 3 ? -2*CS : 0));
+      const pivotY = py + (pacman.dir === 2 ? 2*CS : (pacman.dir === 1 ? -2*CS : 0));
+      const targetX = pivotX + (pivotX - blinky.x);
+      const targetY = pivotY + (pivotY - blinky.y);
+      return { x: targetX, y: targetY };
+    }
+
+    if (this.name === 'clyde') {
+      // Cowardly (Orange scatter targets if closer than 8 grids, otherwise targets Pac-Man)
+      const dx = px - this.x;
+      const dy = py - this.y;
+      const d = Math.sqrt(dx*dx + dy*dy);
+      
+      if (d > 8 * CS) return { x: px, y: py };
+      return this.scatterTarget;
+    }
+
+    return { x: px, y: py };
+  }
+
+  draw() {
+    ctx.save();
+    
+    // Draw body
+    ctx.beginPath();
+    ctx.arc(this.x, this.y - 2, 9, Math.PI, 0, false);
+    // Draw classic skirt legs
+    ctx.lineTo(this.x + 9, this.y + 9);
+    ctx.lineTo(this.x + 6, this.y + 6);
+    ctx.lineTo(this.x + 3, this.y + 9);
+    ctx.lineTo(this.x,     this.y + 6);
+    ctx.lineTo(this.x - 3, this.y + 9);
+    ctx.lineTo(this.x - 6, this.y + 6);
+    ctx.lineTo(this.x - 9, this.y + 9);
+    ctx.closePath();
+
+    if (this.mode === 'frightened') {
+      // Frightened mode color cycle: Blue with white flash on timer end
+      const pulse = frightenedTimer < 180 ? (Math.floor(frightenedTimer / 10) % 2 === 0) : false;
+      ctx.fillStyle = pulse ? '#FFEBD3' : '#67A2C5';
+      ctx.fill();
+
+      // Scared eyes (flat circles)
+      ctx.fillStyle = '#E8906E';
+      ctx.fillRect(this.x - 4, this.y - 4, 2, 2);
+      ctx.fillRect(this.x + 2, this.y - 4, 2, 2);
+    } else if (this.mode !== 'eaten') {
+      // Normal ghost skin
+      ctx.fillStyle = this.color;
+      ctx.fill();
+
+      // Glow outline
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = this.color;
+      ctx.strokeStyle = this.color + '88';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Draw eyes looking in direction
+      ctx.fillStyle = '#FFEBD3'; // White part
+      ctx.beginPath();
+      ctx.arc(this.x - 4, this.y - 3, 3, 0, Math.PI*2);
+      ctx.arc(this.x + 4, this.y - 3, 3, 0, Math.PI*2);
+      ctx.fill();
+
+      // Pupils looking towards movement direction
+      ctx.fillStyle = '#0D0806';
+      let ox = 0, oy = 0;
+      if (this.dir === 1) oy = -1.5;
+      if (this.dir === 2) oy = 1.5;
+      if (this.dir === 3) ox = -1.5;
+      if (this.dir === 4) ox = 1.5;
+
+      ctx.beginPath();
+      ctx.arc(this.x - 4 + ox, this.y - 3 + oy, 1.2, 0, Math.PI*2);
+      ctx.arc(this.x + 4 + ox, this.y - 3 + oy, 1.2, 0, Math.PI*2);
+      ctx.fill();
+    } else {
+      // Eaten mode (Only eyeballs remaining, returning home)
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.beginPath();
+      ctx.arc(this.x - 4, this.y - 3, 3, 0, Math.PI*2);
+      ctx.arc(this.x + 4, this.y - 3, 3, 0, Math.PI*2);
+      ctx.fill();
+      
+      ctx.fillStyle = '#67A2C5';
+      ctx.beginPath();
+      ctx.arc(this.x - 4, this.y - 3, 1.2, 0, Math.PI*2);
+      ctx.arc(this.x + 4, this.y - 3, 1.2, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+}
+
+/* Instantiate 4 ghosts */
+const ghosts = [
+  new Ghost('blinky', '#FF5555', 9, 9,  19, -2), // Red
+  new Ghost('pinky',  '#FFB6C1', 9, 9,  -2, -2), // Pink
+  new Ghost('inky',   '#67A2C5', 8, 9,  19, 24), // Cyan
+  new Ghost('clyde',  '#FFB6A6', 10, 9, -2, 24), // Orange (Warm Peach)
+];
+
+/* ── Keyboard Keys State ────────────────────────────────────────────────── */
+const keys = {};
+window.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  
+  if (state === 'playing') {
+    if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') pacman.nextDir = 1;
+    if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') pacman.nextDir = 2;
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') pacman.nextDir = 3;
+    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') pacman.nextDir = 4;
+    
+    // Toggle Anti-gravity float mode with SPACEBAR
+    if (e.key === ' ') {
+      toggleAntiGravity();
+    }
+  }
+});
+window.addEventListener('keyup', e => {
+  keys[e.key] = false;
+});
+
+/* ── Toggle Anti-Gravity Mode ───────────────────────────────────────────── */
+function toggleAntiGravity() {
+  if (pacman.antiGravity) {
+    // Try to deactivate
+    const gx = Math.floor(pacman.x / CS);
+    const gy = Math.floor(pacman.y / CS);
+    
+    // Pac-Man can only deactivate anti-gravity if he is in an empty corridor/grid,
+    // not directly inside a wall block!
+    if (maze[gy][gx] === 1) {
+      // Flash warnings or play sound? He is stuck in wall, cannot land!
+      return;
+    }
+    
+    pacman.antiGravity = false;
+    // Align coordinates cleanly back to grid position
+    pacman.x = gx * CS + CS/2;
+    pacman.y = gy * CS + CS/2;
+    pacman.dir = 0;
+    pacman.nextDir = 0;
+  } else {
+    // Activate only if we have energy
+    if (pacman.energy > 0.1) {
+      pacman.antiGravity = true;
+      pacman.vx = pacman.dir === 3 ? -pacman.speed : (pacman.dir === 4 ? pacman.speed : 0);
+      pacman.vy = pacman.dir === 1 ? -pacman.speed : (pacman.dir === 2 ? pacman.speed : 0);
+    }
+  }
+}
+
+/* ── Check Wall Collisions ──────────────────────────────────────────────── */
+function isWall(gridX, gridY) {
+  if (gridX < 0 || gridX >= COLS || gridY < 0 || gridY >= ROWS) return true;
+  return maze[gridY][gridX] === 1;
+}
+
+/* ── Game Update Loop ───────────────────────────────────────────────────── */
+const W = canvas.width;
+const H = canvas.height;
+
+function update(ts) {
+  if (state !== 'playing') return;
+
+  // Background audio siren looping simulation (mathematical sound triggered periodically)
+  sirenTimer++;
+  if (sirenTimer % 22 === 0) {
+    SoundEffect.playSiren();
+  }
+
+  // Handle frightened ghost state timer
+  if (frightenedTimer > 0) {
+    frightenedTimer--;
+    if (frightenedTimer === 0) {
+      ghosts.forEach(g => { if (g.mode === 'frightened') g.mode = 'chase'; });
+    }
+  }
+
+  /* ── PAC-MAN POSITION MOVEMENT ────────────────────────────────── */
+  if (pacman.antiGravity) {
+    // ── PHYSICS MOVEMENT MODE (Slippery, floating mechanics)
+    // Drains energy
+    pacman.energy = Math.max(0, pacman.energy - 0.0035);
+    
+    // Apply floating force acceleration vectors on WASD / Arrow Key inputs
+    let ax = 0, ay = 0;
+    if (keys['ArrowUp'] || keys['w'] || keys['W'])    ay = -pacman.acc;
+    if (keys['ArrowDown'] || keys['s'] || keys['S'])  ay = pacman.acc;
+    if (keys['ArrowLeft'] || keys['a'] || keys['A'])  ax = -pacman.acc;
+    if (keys['ArrowRight'] || keys['d'] || keys['D']) ax = pacman.acc;
+
+    pacman.vx += ax;
+    pacman.vy += ay;
+    
+    // Drag friction simulation
+    pacman.vx *= pacman.drag;
+    pacman.vy *= pacman.drag;
+
+    pacman.x += pacman.vx;
+    pacman.y += pacman.vy;
+
+    // Check bounds wrapping
+    if (pacman.x < 0) pacman.x = W;
+    if (pacman.x > W) pacman.x = 0;
+    if (pacman.y < 0) pacman.y = H;
+    if (pacman.y > H) pacman.y = 0;
+
+    // Auto-death constraint: If energy completely drains to 0% and Pacman is still inside a wall block
+    if (pacman.energy <= 0) {
+      const gx = Math.floor(pacman.x / CS);
+      const gy = Math.floor(pacman.y / CS);
+      if (isWall(gx, gy)) {
+        die();
+        return;
+      } else {
+        // Force deactivate
+        pacman.antiGravity = false;
+        pacman.x = gx * CS + CS/2;
+        pacman.y = gy * CS + CS/2;
+        pacman.dir = 0;
+      }
+    }
+  } else {
+    // ── CLASSIC ACCURATE GRID MOVEMENT MODE
+    // Recharge energy slowly while de-activated on the floor/corridors
+    pacman.energy = Math.min(1.0, pacman.energy + 0.0018);
+
+    const gx = Math.floor(pacman.x / CS);
+    const gy = Math.floor(pacman.y / CS);
+    
+    // Can only change directions at exact cell junctions/centers
+    const offset = CS / 2;
+    const alignedX = Math.abs((pacman.x % CS) - offset) < pacman.speed;
+    const alignedY = Math.abs((pacman.y % CS) - offset) < pacman.speed;
+
+    if (alignedX && alignedY) {
+      // Clean locking coordinates to center
+      pacman.x = gx * CS + offset;
+      pacman.y = gy * CS + offset;
+
+      // Handle next direction changes buffered from user inputs
+      if (pacman.nextDir !== 0) {
+        let canTurn = false;
+        if (pacman.nextDir === 1 && !isWall(gx, gy - 1)) canTurn = true;
+        if (pacman.nextDir === 2 && !isWall(gx, gy + 1)) canTurn = true;
+        if (pacman.nextDir === 3 && !isWall(gx - 1, gy)) canTurn = true;
+        if (pacman.nextDir === 4 && !isWall(gx + 1, gy)) canTurn = true;
+
+        if (canTurn) {
+          pacman.dir = pacman.nextDir;
+          pacman.nextDir = 0;
+        }
+      }
+
+      // Check forward cell collision to halt movement at wall barriers
+      let blocked = false;
+      if (pacman.dir === 1 && isWall(gx, gy - 1)) blocked = true;
+      if (pacman.dir === 2 && isWall(gx, gy + 1)) blocked = true;
+      if (pacman.dir === 3 && isWall(gx - 1, gy)) blocked = true;
+      if (pacman.dir === 4 && isWall(gx + 1, gy)) blocked = true;
+
+      if (blocked) {
+        pacman.dir = 0;
+      }
+    }
+
+    // Move coordinates
+    if (pacman.dir === 1) pacman.y -= pacman.speed;
+    if (pacman.dir === 2) pacman.y += pacman.speed;
+    if (pacman.dir === 3) pacman.x -= pacman.speed;
+    if (pacman.dir === 4) pacman.x += pacman.speed;
+
+    // Side tunnel wrap-around logic
+    if (pacman.x < 0) pacman.x = W - CS/2;
+    if (pacman.x > W) pacman.x = CS/2;
+  }
+
+  // Update mouth chomp animations
+  pacman.mouthAngle += pacman.mouthSpeed;
+  if (pacman.mouthAngle > 0.4 || pacman.mouthAngle < 0.05) {
+    pacman.mouthSpeed = -pacman.mouthSpeed;
+  }
+
+  /* ── EATING PELLETS & POWER ITEMS ─────────────────────────────── */
+  const pgx = Math.floor(pacman.x / CS);
+  const pgy = Math.floor(pacman.y / CS);
+
+  if (pgx >= 0 && pgx < COLS && pgy >= 0 && pgy < ROWS) {
+    const tile = maze[pgy][pgx];
+    if (tile === 2) {
+      // Eat standard dot
+      maze[pgy][pgx] = 0;
+      score += 10;
+      updateScore();
+      SoundEffect.playWaka();
+    } else if (tile === 3) {
+      // Eat Power Pellet
+      maze[pgy][pgx] = 0;
+      score += 50;
+      updateScore();
+      SoundEffect.playPowerSweep();
+      
+      // Trigger ghost panic frightened mode
+      frightenedTimer = 480; // 8 seconds at 60fps
+      ghosts.forEach(g => { if (g.mode !== 'eaten') g.mode = 'frightened'; });
+    }
+  }
+
+  // Check victory: No dots left in maze
+  let dotsLeft = false;
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (maze[r][c] === 2 || maze[r][c] === 3) {
+        dotsLeft = true;
+        break;
+      }
+    }
+  }
+  if (!dotsLeft) {
+    levelComplete();
+  }
+
+  /* ── GHOST AI MOVEMENT & INTERACTION ───────────────────────────── */
+  for (const ghost of ghosts) {
+    ghost.update();
+
+    // Check collision overlap (AABB Box boundary intersections)
+    const dx = ghost.x - pacman.x;
+    const dy = ghost.y - pacman.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+
+    if (dist < 16) {
+      if (ghost.mode === 'frightened') {
+        // Eat ghost!
+        ghost.mode = 'eaten';
+        score += 200;
+        updateScore();
+        SoundEffect.playGhostEat();
+      } else if (ghost.mode !== 'eaten') {
+        // Classic touch collision: Die
+        die();
+        return;
+      }
+    }
+  }
+
+  // HUD Update elements
+  document.getElementById('energy-bar').style.width = `${pacman.energy * 100}%`;
+  document.getElementById('energy-val').textContent = `${Math.round(pacman.energy * 100)}%`;
+}
+
+/* ── Level Complete ─────────────────────────────────────────────────────── */
+function levelComplete() {
+  state = 'waiting';
+  maze = JSON.parse(JSON.stringify(INITIAL_MAZE));
+  pacman.reset();
+  ghosts.forEach(g => g.reset());
+  alert("STAGE CLEARED! LOADING NEXT WAVE...");
+  state = 'playing';
+}
+
+/* ── Pac-Man Death ──────────────────────────────────────────────────────── */
+function die() {
+  state = 'dead';
+  lives--;
+  document.getElementById('hud-lives').textContent = lives;
+  SoundEffect.playDeath();
+
+  if (lives <= 0) {
+    gameOver();
+  } else {
+    // Restart position after a short pause
+    setTimeout(() => {
+      pacman.reset();
+      ghosts.forEach(g => g.reset());
+      state = 'playing';
+    }, 1200);
+  }
+}
+
+/* ── Game Over ──────────────────────────────────────────────────────────── */
+function gameOver() {
+  state = 'gameover';
+  cancelAnimationFrame(rafId);
+  document.getElementById('go-score').textContent = `Final Score: ${score}`;
+  document.getElementById('go-screen').classList.remove('hidden');
+}
+
+/* ── Score HUD Updates ──────────────────────────────────────────────────── */
+function updateScore() {
+  document.getElementById('hud-score').textContent = score;
+  if (score > bestScore) {
+    bestScore = score;
+    document.getElementById('hdr-best').textContent = bestScore;
+  }
+}
+
+/* ── Drawing Frame Pipeline ────────────────────────────────────────────── */
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+
+  /* ── A. DRAW NEON MAZE WALLS ─────────────────────────── */
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const tile = maze[r][c];
+      const x = c * CS;
+      const y = r * CS;
+
+      if (tile === 1) {
+        // Neon blue wall layout styling
+        ctx.save();
+        ctx.fillStyle = '#0a0a20';
+        ctx.fillRect(x, y, CS, CS);
+        
+        ctx.strokeStyle = '#67A2C5'; // Blue glow color
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = '#67A2C5';
+        ctx.lineWidth = 1.5;
+        
+        // Draw simple bounds matching wall grid boundaries
+        ctx.strokeRect(x + 2, y + 2, CS - 4, CS - 4);
+        ctx.restore();
+      } else if (tile === 2) {
+        // Draw food pellet dots (Cream color)
+        ctx.save();
+        ctx.fillStyle = '#FFEBD3';
+        ctx.beginPath();
+        ctx.arc(x + CS/2, y + CS/2, 2.5, 0, Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+      } else if (tile === 3) {
+        // Draw flashing Power Pellets
+        ctx.save();
+        if (Math.floor(Date.now() / 250) % 2 === 0) {
+          ctx.fillStyle = '#FFB6A6'; // Peach highlight color
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = '#FFB6A6';
+          ctx.beginPath();
+          ctx.arc(x + CS/2, y + CS/2, 6, 0, Math.PI*2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+    }
+  }
+
+  /* ── B. DRAW GHOSTS ──────────────────────────────────── */
+  ghosts.forEach(g => g.draw());
+
+  /* ── C. DRAW PAC-MAN ─────────────────────────────────── */
+  ctx.save();
+  
+  // Render visual anti-gravity glow aura if enabled
+  if (pacman.antiGravity) {
+    ctx.shadowBlur = 24;
+    ctx.shadowColor = '#FFB6A6'; // Peach aura glow
+    ctx.fillStyle = 'rgba(255, 182, 166, 0.18)';
+    ctx.beginPath();
+    ctx.arc(pacman.x, pacman.y, 22, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  // Draw core yellow circular body
+  ctx.beginPath();
+  
+  // Math mapping rot angle based on face direction
+  let rotationOffset = 0;
+  if (pacman.dir === 1) rotationOffset = -Math.PI/2; // Up
+  if (pacman.dir === 2) rotationOffset = Math.PI/2;  // Down
+  if (pacman.dir === 3) rotationOffset = Math.PI;     // Left
+  if (pacman.dir === 4) rotationOffset = 0;           // Right
+  
+  if (pacman.vx !== 0 || pacman.vy !== 0) {
+    // Dynamic angle tilt for physics drift movements
+    rotationOffset = Math.atan2(pacman.vy, pacman.vx);
+  }
+
+  ctx.translate(pacman.x, pacman.y);
+  ctx.rotate(rotationOffset);
+
+  // Classic chomping mouth arcs
+  ctx.arc(0, 0, 10, pacman.mouthAngle, Math.PI * 2 - pacman.mouthAngle);
+  ctx.lineTo(0, 0);
+  ctx.closePath();
+
+  ctx.fillStyle = '#FFEBD3'; // Peach/Cream themed PAC-MAN
+  ctx.fill();
+
+  // Glow line outline
+  ctx.shadowBlur = 10;
+  ctx.shadowColor = '#FFB6A6';
+  ctx.strokeStyle = '#FFB6A6';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+/* ── Main requestAnimationFrame Loop ────────────────────────────────────── */
+function loop(timestamp) {
+  update(timestamp);
+  draw();
+  rafId = requestAnimationFrame(loop);
+}
+
+/* ── Launch Event Bindings ──────────────────────────────────────────────── */
+function start() {
+  document.getElementById('start-screen').classList.add('hidden');
+  initGame();
+  state = 'playing';
+}
+
+function initGame() {
+  score = 0;
+  lives = 3;
+  maze = JSON.parse(JSON.stringify(INITIAL_MAZE));
+  document.getElementById('hud-lives').textContent = lives;
+  document.getElementById('hud-score').textContent = '0';
+  pacman.reset();
+  pacman.energy = 1.0;
+  ghosts.forEach(g => g.reset());
+}
+
+document.getElementById('start-btn').addEventListener('click', start);
+document.getElementById('restart-btn').addEventListener('click', () => {
+  document.getElementById('go-screen').classList.add('hidden');
+  initGame();
+  state = 'playing';
+});
+
+// Boot frame load
+draw();
+rafId = requestAnimationFrame(loop);
+</script>
+</body>
+</html>
