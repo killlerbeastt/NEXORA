@@ -21,6 +21,10 @@ const CursorGlow = dynamic(() => import('@/components/effects/CursorGlow'), {
   ssr: false,
 });
 
+const CursorParticles = dynamic(() => import('@/components/effects/CursorParticles'), {
+  ssr: false,
+});
+
 export default function Home() {
   // Initialize smooth scroll
   useSmoothScroll();
@@ -30,8 +34,9 @@ export default function Home() {
 
   return (
     <>
-      {/* Custom cursor */}
+      {/* Custom cursor & 3D particle trail */}
       <CursorGlow />
+      <CursorParticles />
 
       {/* Floating glass navigation */}
       <Navigation />
