@@ -278,6 +278,9 @@ function ParticleTrailEngine({ isMobile }: { isMobile: boolean }) {
           const interpPos = prevEmitterPos.current.clone().lerp(emitterPos.current, t);
           spawnParticle(interpPos, velocityBonus);
         }
+        (geometry.getAttribute('aColor') as THREE.BufferAttribute).needsUpdate = true;
+        (geometry.getAttribute('aSize') as THREE.BufferAttribute).needsUpdate = true;
+        (geometry.getAttribute('aMaxAge') as THREE.BufferAttribute).needsUpdate = true;
       }
     } else {
       spawnFraction.current = 0;
@@ -317,13 +320,10 @@ function ParticleTrailEngine({ isMobile }: { isMobile: boolean }) {
       }
     }
 
-    // Flag ALL buffer attributes for GPU sync so new particles immediately get their color & size!
+    // Flag dynamic buffers (position & age change every frame)
     if (activeCount > 0 || cursorSpeed > 0.05 || timeSinceLastMove < 180) {
       (geometry.getAttribute('position') as THREE.BufferAttribute).needsUpdate = true;
       (geometry.getAttribute('aAge') as THREE.BufferAttribute).needsUpdate = true;
-      (geometry.getAttribute('aColor') as THREE.BufferAttribute).needsUpdate = true;
-      (geometry.getAttribute('aSize') as THREE.BufferAttribute).needsUpdate = true;
-      (geometry.getAttribute('aMaxAge') as THREE.BufferAttribute).needsUpdate = true;
     }
   });
 
@@ -338,9 +338,9 @@ function ParticleTrailEngine({ isMobile }: { isMobile: boolean }) {
 export default function CursorParticles() {
   const [isMobile, setIsMobile] = useState(false);
   const [isTouchOnly, setIsTouchOnly] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    // Check if device is purely coarse/touch (no mouse)
     if (window.matchMedia('(pointer: coarse)').matches && !('onmousemove' in window)) {
       setIsTouchOnly(true);
       return;
@@ -350,15 +350,24 @@ export default function CursorParticles() {
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+
+    const handleVisibilityChange = () => {
+      setIsVisible(document.visibilityState === 'visible');
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
-  // Do not render on touch-only mobile devices without mouse
   if (isTouchOnly) return null;
 
   return (
     <div className="fixed inset-0 pointer-events-none z-[9997]" style={{ touchAction: 'none' }}>
       <Canvas
+        frameloop={isVisible ? 'always' : 'never'}
         camera={{ position: [0, 0, 8], fov: 45 }}
         dpr={[1, 1.5]}
         gl={{
