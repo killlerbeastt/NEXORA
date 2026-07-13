@@ -19,14 +19,14 @@
 'use client';
 
 import { useRef, useMemo, useEffect, useState, useCallback } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+
+const TAU = Math.PI * 2;
 
 /* ══════════════════════════════════════════════════════════════
    1. COLOR PALETTE & CONSTANTS
 ══════════════════════════════════════════════════════════════ */
-const TAU = Math.PI * 2;
-
 // Electric Cyan, Neon Blue, Violet, Purple, and Bright White highlights
 const PARTICLE_COLORS = [
   new THREE.Color('#00F5FF'), // Electric Cyan
@@ -69,8 +69,8 @@ const ParticleShaderMaterial = {
         scaleCurve = smoothstep(1.0, 0.15, vLife);
       }
 
-      // Perspective size attenuation
-      gl_PointSize = (aSize * scaleCurve * 420.0) / (-mvPosition.z);
+      // High-impact point size (so energy spheres render crisp at 35px - 65px width)
+      gl_PointSize = (aSize * scaleCurve * 1100.0) / max(0.1, -mvPosition.z);
       gl_Position = projectionMatrix * mvPosition;
     }
   `,
@@ -88,24 +88,24 @@ const ParticleShaderMaterial = {
 
       // Volumetric glowing energy sphere
       // Core: intensely bright center (white/cyan glint)
-      float core = pow(clamp(1.0 - dist, 0.0, 1.0), 4.5);
+      float core = pow(clamp(1.0 - dist, 0.0, 1.0), 3.5);
       
       // Halo: soft additive outer glow
-      float halo = pow(clamp(1.0 - dist, 0.0, 1.0), 1.6);
+      float halo = pow(clamp(1.0 - dist, 0.0, 1.0), 1.4);
 
       // Fade out opacity smoothly over lifecycle
       float alphaFade = 1.0;
-      if (vLife > 0.6) {
-        alphaFade = smoothstep(1.0, 0.6, vLife);
+      if (vLife > 0.55) {
+        alphaFade = smoothstep(1.0, 0.55, vLife);
       } else if (vLife < 0.1) {
         alphaFade = smoothstep(0.0, 0.1, vLife);
       }
 
       // Mix intense white core into the assigned color halo
       vec3 finalColor = mix(vColor, vec3(1.0, 1.0, 1.0), core * 0.85);
-      float finalAlpha = (halo * 0.75 + core * 0.6) * alphaFade;
+      float finalAlpha = clamp((halo * 0.85 + core * 0.8) * alphaFade, 0.0, 1.0);
 
-      gl_FragColor = vec4(finalColor * (1.0 + core * 1.5), finalAlpha);
+      gl_FragColor = vec4(finalColor * (1.2 + core * 1.8), finalAlpha);
     }
   `
 };
@@ -116,7 +116,6 @@ const ParticleShaderMaterial = {
 function ParticleTrailEngine({ isMobile }: { isMobile: boolean }) {
   const maxParticles = isMobile ? MOBILE_MAX_PARTICLES : DESKTOP_MAX_PARTICLES;
   const pointsRef = useRef<THREE.Points>(null!);
-  const { camera, size } = useThree();
 
   /* ── Pre-allocated Ring Buffer Attributes ── */
   const {
@@ -143,6 +142,8 @@ function ParticleTrailEngine({ isMobile }: { isMobile: boolean }) {
       positions[i * 3 + 2] = -9999;
       ages[i] = 999; // inactive
       maxAges[i] = 1.5;
+      sizes[i] = 0.3;
+      colors[i * 3] = 0; colors[i * 3 + 1] = 0.96; colors[i * 3 + 2] = 1;
     }
 
     const geo = new THREE.BufferGeometry();
@@ -170,45 +171,29 @@ function ParticleTrailEngine({ isMobile }: { isMobile: boolean }) {
 
   /* ── State Tracking & Spring Emitter ── */
   const poolIndex = useRef(0);
+  const mouseNdc = useRef({ x: 0, y: 0, active: false, lastMoveTime: 0 });
   const targetPos = useRef(new THREE.Vector3(0, 0, 0));
   const emitterPos = useRef(new THREE.Vector3(0, 0, 0));
   const prevEmitterPos = useRef(new THREE.Vector3(0, 0, 0));
   const hasInitialized = useRef(false);
   const spawnFraction = useRef(0);
 
-  /* ── Convert NDC mouse to 3D world coordinates at z = 0 ── */
-  const unprojectMouse = useCallback((clientX: number, clientY: number) => {
-    const ndcX = (clientX / window.innerWidth) * 2 - 1;
-    const ndcY = -(clientY / window.innerHeight) * 2 + 1;
-
-    // Perspective camera calculation at world Z = 0
-    const camZ = camera.position.z;
-    const fovRad = THREE.MathUtils.degToRad((camera as THREE.PerspectiveCamera).fov);
-    const viewHeight = 2 * Math.tan(fovRad / 2) * camZ;
-    const viewWidth = viewHeight * (size.width / size.height);
-
-    return new THREE.Vector3(
-      (ndcX * viewWidth) / 2,
-      (ndcY * viewHeight) / 2,
-      0 // Z-plane
-    );
-  }, [camera, size]);
-
   /* ── Mouse Listener ── */
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      const worldPos = unprojectMouse(e.clientX, e.clientY);
-      targetPos.current.copy(worldPos);
-      if (!hasInitialized.current) {
-        emitterPos.current.copy(worldPos);
-        prevEmitterPos.current.copy(worldPos);
-        hasInitialized.current = true;
-      }
+      const ndcX = (e.clientX / window.innerWidth) * 2 - 1;
+      const ndcY = -(e.clientY / window.innerHeight) * 2 + 1;
+      mouseNdc.current = {
+        x: ndcX,
+        y: ndcY,
+        active: true,
+        lastMoveTime: performance.now()
+      };
     };
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [unprojectMouse]);
+  }, []);
 
   /* ── Spawn Single Particle Helper ── */
   const spawnParticle = useCallback((pos: THREE.Vector3, velocityBonus: THREE.Vector3) => {
@@ -216,58 +201,78 @@ function ParticleTrailEngine({ isMobile }: { isMobile: boolean }) {
     poolIndex.current = (idx + 1) % maxParticles;
 
     // Assign position with slight organic jitter
-    positions[idx * 3]     = pos.x + (Math.random() - 0.5) * 0.08;
-    positions[idx * 3 + 1] = pos.y + (Math.random() - 0.5) * 0.08;
-    positions[idx * 3 + 2] = pos.z + (Math.random() - 0.5) * 0.15; // Z depth variation
+    positions[idx * 3]     = pos.x + (Math.random() - 0.5) * 0.12;
+    positions[idx * 3 + 1] = pos.y + (Math.random() - 0.5) * 0.12;
+    positions[idx * 3 + 2] = pos.z + (Math.random() - 0.5) * 0.2; // Z depth variation
 
     // Randomized explosion velocity + upward drift + inherited cursor velocity
     const angle = Math.random() * TAU;
-    const speed = 0.3 + Math.random() * 0.8;
-    velocities[idx * 3]     = Math.cos(angle) * speed + velocityBonus.x * 0.25;
-    velocities[idx * 3 + 1] = Math.sin(angle) * speed + 0.4 + Math.random() * 0.6 + velocityBonus.y * 0.25;
-    velocities[idx * 3 + 2] = (Math.random() - 0.5) * 0.6; // depth drift
+    const speed = 0.4 + Math.random() * 1.1;
+    velocities[idx * 3]     = Math.cos(angle) * speed + velocityBonus.x * 0.3;
+    velocities[idx * 3 + 1] = Math.sin(angle) * speed + 0.5 + Math.random() * 0.8 + velocityBonus.y * 0.3;
+    velocities[idx * 3 + 2] = (Math.random() - 0.5) * 0.8; // depth drift
 
-    // Pick random palette color (with high chance for Electric Cyan & Violet)
+    // Pick random palette color
     const colorIdx = Math.floor(Math.random() * PARTICLE_COLORS.length);
     const col = PARTICLE_COLORS[colorIdx];
     colors[idx * 3]     = col.r;
     colors[idx * 3 + 1] = col.g;
     colors[idx * 3 + 2] = col.b;
 
-    // Size (between 0.12 and 0.35 world units)
-    sizes[idx] = 0.14 + Math.random() * 0.22;
+    // Size (between 0.22 and 0.45 world units for high impact)
+    sizes[idx] = 0.22 + Math.random() * 0.28;
 
-    // Lifetime (~1.3s to 1.8s)
+    // Lifetime (~1.2s to 1.7s)
     ages[idx] = 0.001;
-    maxAges[idx] = 1.3 + Math.random() * 0.5;
+    maxAges[idx] = 1.2 + Math.random() * 0.5;
     seeds[idx] = Math.random() * 100;
   }, [maxParticles, positions, velocities, colors, sizes, ages, maxAges, seeds]);
 
   /* ── Physics & Render Loop (useFrame) ── */
   useFrame((state, delta) => {
-    if (!hasInitialized.current) return;
     const dt = Math.min(delta, 0.05); // cap delta during tab freezes
     const time = state.clock.elapsedTime;
+    const { camera, size } = state;
+
+    // Unproject current NDC coordinates inside frame loop to ensure 100% precision
+    if (mouseNdc.current.active) {
+      const camZ = camera.position.z;
+      const fovRad = THREE.MathUtils.degToRad((camera as THREE.PerspectiveCamera).fov);
+      const viewHeight = 2 * Math.tan(fovRad / 2) * camZ;
+      const viewWidth = viewHeight * (size.width / size.height);
+
+      const worldX = (mouseNdc.current.x * viewWidth) / 2;
+      const worldY = (mouseNdc.current.y * viewHeight) / 2;
+      targetPos.current.set(worldX, worldY, 0);
+
+      if (!hasInitialized.current) {
+        emitterPos.current.copy(targetPos.current);
+        prevEmitterPos.current.copy(targetPos.current);
+        hasInitialized.current = true;
+      }
+    }
+
+    if (!hasInitialized.current) return;
 
     /* ── 1. Spring Emitter Position (~50ms delay behind cursor) ── */
     prevEmitterPos.current.copy(emitterPos.current);
-    emitterPos.current.lerp(targetPos.current, 1.0 - Math.pow(0.001, dt)); // ~50ms lag
+    emitterPos.current.lerp(targetPos.current, 1.0 - Math.pow(0.0005, dt)); // ~50ms lag
 
     /* ── 2. Calculate Cursor Velocity & Dynamic Spawn Rate ── */
     const distMoved = emitterPos.current.distanceTo(prevEmitterPos.current);
     const cursorSpeed = distMoved / dt;
     const velocityBonus = emitterPos.current.clone().sub(prevEmitterPos.current).divideScalar(dt);
+    const timeSinceLastMove = performance.now() - mouseNdc.current.lastMoveTime;
 
-    // If stationary (< 0.08 units/sec), stop spawning. If moving, rate scales from 22 up to 60/sec
-    if (cursorSpeed > 0.08) {
-      const spawnRate = Math.min(60, 22 + cursorSpeed * 6);
+    // If mouse moved within last 180ms or speed is active, continuously emit particles
+    if (cursorSpeed > 0.05 || timeSinceLastMove < 180) {
+      const spawnRate = Math.min(80, 28 + cursorSpeed * 8);
       spawnFraction.current += spawnRate * dt;
 
       const particlesToSpawn = Math.floor(spawnFraction.current);
       if (particlesToSpawn > 0) {
         spawnFraction.current -= particlesToSpawn;
 
-        // Interpolate along the movement path so fast mouse sweeps leave continuous trails
         for (let i = 0; i < particlesToSpawn; i++) {
           const t = (i + 1) / particlesToSpawn;
           const interpPos = prevEmitterPos.current.clone().lerp(emitterPos.current, t);
@@ -279,9 +284,6 @@ function ParticleTrailEngine({ isMobile }: { isMobile: boolean }) {
     }
 
     /* ── 3. Update Existing Active Particles (Zero Allocations) ── */
-    const posAttr = geometry.getAttribute('position') as THREE.BufferAttribute;
-    const ageAttr = geometry.getAttribute('aAge') as THREE.BufferAttribute;
-
     let activeCount = 0;
     for (let i = 0; i < maxParticles; i++) {
       if (ages[i] < maxAges[i] && ages[i] > 0) {
@@ -298,9 +300,9 @@ function ParticleTrailEngine({ isMobile }: { isMobile: boolean }) {
 
         // Organic 3D turbulence (sinusoidal noise oscillation)
         const seed = seeds[i];
-        const turbX = Math.sin(time * 3.0 + seed) * 0.35;
-        const turbY = Math.cos(time * 2.5 + seed * 1.3) * 0.35;
-        const turbZ = Math.sin(time * 2.0 + seed * 0.7) * 0.25;
+        const turbX = Math.sin(time * 3.0 + seed) * 0.4;
+        const turbY = Math.cos(time * 2.5 + seed * 1.3) * 0.4;
+        const turbZ = Math.sin(time * 2.0 + seed * 0.7) * 0.3;
 
         // Apply velocity + turbulence to position
         positions[i * 3]     += (velocities[i * 3]     + turbX) * dt;
@@ -315,10 +317,13 @@ function ParticleTrailEngine({ isMobile }: { isMobile: boolean }) {
       }
     }
 
-    // Flag buffers for GPU re-upload if we had active particles
-    if (activeCount > 0 || cursorSpeed > 0.08) {
-      posAttr.needsUpdate = true;
-      ageAttr.needsUpdate = true;
+    // Flag ALL buffer attributes for GPU sync so new particles immediately get their color & size!
+    if (activeCount > 0 || cursorSpeed > 0.05 || timeSinceLastMove < 180) {
+      (geometry.getAttribute('position') as THREE.BufferAttribute).needsUpdate = true;
+      (geometry.getAttribute('aAge') as THREE.BufferAttribute).needsUpdate = true;
+      (geometry.getAttribute('aColor') as THREE.BufferAttribute).needsUpdate = true;
+      (geometry.getAttribute('aSize') as THREE.BufferAttribute).needsUpdate = true;
+      (geometry.getAttribute('aMaxAge') as THREE.BufferAttribute).needsUpdate = true;
     }
   });
 
@@ -357,7 +362,7 @@ export default function CursorParticles() {
         camera={{ position: [0, 0, 8], fov: 45 }}
         dpr={[1, 1.5]}
         gl={{
-          antialias: false, // additive points don't require MSAA
+          antialias: false,
           alpha: true,
           powerPreference: 'high-performance',
         }}
