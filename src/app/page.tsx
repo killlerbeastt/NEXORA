@@ -1,8 +1,8 @@
 /* ================================================================
-   page.tsx — Homepage Assembly
+   page.tsx — Homepage Assembly (AAA Redesign)
    ================================================================
-   Assembles all sections: Navigation → Hero → Games → Footer
-   with smooth scroll and custom cursor.
+   Assembles all sections in order:
+   Navigation → Hero → StatsStrip → Games → Footer
    ================================================================ */
 'use client';
 
@@ -12,6 +12,7 @@ import { useCursor } from '@/hooks/useCursor';
 import Navigation from '@/components/layout/Navigation';
 import HeroSection from '@/components/hero/HeroSection';
 import GameShowcase from '@/components/games/GameShowcase';
+import StatsStrip from '@/components/sections/StatsStrip';
 import Footer from '@/components/layout/Footer';
 
 // Dynamic import for cursor (client-only, avoid SSR flash)
@@ -36,14 +37,17 @@ export default function Home() {
 
       {/* Main content */}
       <main>
-        {/* Hero — Full viewport with 3D robot */}
+        {/* Hero — Full viewport with 3D robot, split title, floating glass panel */}
         <HeroSection />
 
-        {/* Games Showcase — Premium floating cards */}
+        {/* Stats strip — 4 Games · 60 FPS · 100% Browser · 0 Downloads */}
+        <StatsStrip />
+
+        {/* Games Showcase — Featured → Flappy full-width → Coming Soon 2-col */}
         <GameShowcase />
       </main>
 
-      {/* Footer */}
+      {/* Cinematic "Ready? Play." footer */}
       <Footer />
     </>
   );
