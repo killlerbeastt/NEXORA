@@ -38,16 +38,26 @@ const GameModal = memo(function GameModal({ game, onClose }: GameModalProps) {
     }
   }, [game]);
 
-  // Close on Escape key
+  // Close on Escape key or postMessage from inside iframe
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && game) {
-        audio.hoverTick();
+        try { audio.hoverTick(); } catch (err) {}
+        onClose();
+      }
+    };
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data && e.data.type === 'CLOSE_MODAL' && game) {
+        try { audio.hoverTick(); } catch (err) {}
         onClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('message', handleMessage);
+    };
   }, [game, onClose, audio]);
 
   const handlePopOut = () => {
@@ -136,7 +146,7 @@ const GameModal = memo(function GameModal({ game, onClose }: GameModalProps) {
             <div className="relative flex-1 w-full h-full bg-black flex items-center justify-center overflow-hidden">
               <iframe
                 ref={iframeRef}
-                src={game.file}
+                src={`${game.file}?autostart=1`}
                 title={`${game.title} ${game.subtitle}`}
                 className="w-full h-full border-none outline-none"
                 allow="autoplay; fullscreen; keyboard; touch"

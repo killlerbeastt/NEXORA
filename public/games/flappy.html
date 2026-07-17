@@ -172,8 +172,7 @@
       <div class="hdr-score-block">
         <div class="hdr-s-lbl">BEST</div>
         <div class="hdr-s-val" id="hdr-best">0</div>
-      </div>
-      <button class="hdr-close" onclick="window.close()">✕ CLOSE</button>
+      <button class="hdr-close" onclick="window.parent !== window ? window.parent.postMessage({type:'CLOSE_MODAL'}, '*') : window.close()">✕ CLOSE</button>
     </div>
   </header>
 
@@ -524,6 +523,22 @@ document.getElementById('restart-btn').addEventListener('touchstart', handleRest
 /* ── Boot ────────────────────────────────────────────────────── */
 init();
 rafId = requestAnimationFrame(loop);
+
+// Listen for Escape key to close modal from inside iframe
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && window.parent !== window) {
+    window.parent.postMessage({ type: 'CLOSE_MODAL' }, '*');
+  }
+});
+
+// Auto-start when loaded inside modal
+if (window.parent !== window || window.location.search.includes('autostart=1')) {
+  setTimeout(() => {
+    if (typeof handleStart === 'function' && (state === 'idle' || state === 'waiting')) {
+      handleStart();
+    }
+  }, 150);
+}
 </script>
 </body>
 </html>

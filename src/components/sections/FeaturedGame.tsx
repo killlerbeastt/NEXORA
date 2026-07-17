@@ -17,8 +17,9 @@ interface FeaturedGameProps {
 const FeaturedGame = memo(function FeaturedGame({ onLaunch }: FeaturedGameProps) {
   const audio = useAudio();
 
-  const handleLaunch = useCallback(() => {
-    audio.whoosh();
+  const handleLaunch = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation?.();
+    try { audio.whoosh(); } catch (err) {}
     onLaunch();
   }, [audio, onLaunch]);
 

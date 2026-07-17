@@ -94,9 +94,10 @@ const GameCard = memo(function GameCard({
     setIsHovered(false);
   }, [mouseX, mouseY, glowOpacity]);
 
-  const handleLaunch = useCallback(() => {
+  const handleLaunch = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation?.();
     if (status !== 'playable') return;
-    audio.whoosh();
+    try { audio.whoosh(); } catch (err) {}
     onLaunch();
   }, [status, audio, onLaunch]);
 
