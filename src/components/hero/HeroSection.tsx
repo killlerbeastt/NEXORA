@@ -23,6 +23,8 @@ const RobotScene = dynamic(() => import('./RobotScene'), {
   ),
 });
 
+import DeveloperSignature from './DeveloperSignature';
+
 const HeroHUDPanels = dynamic(() => import('./HeroHUDPanels'), { ssr: false });
 
 /* ── Deterministic foreground dust particles ─────────────────── */
@@ -146,7 +148,7 @@ const HeroSection = memo(function HeroSection() {
 
           {/* Right: HUB */}
           <motion.div
-            className="text-right"
+            className="text-right flex flex-col items-end"
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 1.1, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
@@ -162,6 +164,7 @@ const HeroSection = memo(function HeroSection() {
             <p className="font-mono text-[10px] tracking-[0.3em] text-[var(--text-muted)] uppercase mt-2">
               Est. 2026
             </p>
+            <DeveloperSignature className="mt-4" />
           </motion.div>
         </div>
       </motion.div>
