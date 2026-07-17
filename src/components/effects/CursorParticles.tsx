@@ -115,12 +115,16 @@ const ParticleShaderMaterial = {
 /* ══════════════════════════════════════════════════════════════
    3. PARTICLE ENGINE (Ring Buffer + Orbit + Burst Physics)
 ══════════════════════════════════════════════════════════════ */
+import { useDeviceQuality } from '@/hooks/useDeviceQuality';
+
 interface EngineProps extends CursorParticleProps {
   isMobile: boolean;
+  particleScale: number;
 }
 
 function ParticleTrailEngine({
   isMobile,
+  particleScale,
   particleCount,
   trailLength = 1.0,
   particleSize = 1.0,
@@ -130,9 +134,9 @@ function ParticleTrailEngine({
   speedSensitivity = 1.0,
 }: EngineProps) {
   const maxParticles = useMemo(() => {
-    if (particleCount) return particleCount;
-    return isMobile ? 300 : 1000;
-  }, [particleCount, isMobile]);
+    const base = particleCount ? particleCount : (isMobile ? 300 : 1000);
+    return Math.max(100, Math.floor(base * particleScale));
+  }, [particleCount, isMobile, particleScale]);
 
   const pointsRef = useRef<THREE.Points>(null!);
   const poolIndex = useRef(0);
@@ -430,6 +434,7 @@ function ParticleTrailEngine({
    4. DEFAULT EXPORT (Canvas Overlay Wrapper)
 ══════════════════════════════════════════════════════════════ */
 export function CursorParticles(props: CursorParticleProps) {
+  const { isTouch, dpr, particleScale, tier } = useDeviceQuality();
   const [isMobile, setIsMobile] = useState(false);
   const [isTouchOnly, setIsTouchOnly] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
@@ -452,7 +457,8 @@ export function CursorParticles(props: CursorParticleProps) {
     };
   }, []);
 
-  if (isTouchOnly) return null;
+  // Do not run cursor particle trails on touch devices or low-tier hardware when coarse pointer is present
+  if (isTouchOnly || isTouch || (tier === 'low' && isMobile)) return null;
 
   return (
     <div className={`fixed inset-0 pointer-events-none z-[9997] ${props.className || ''}`} style={{ touchAction: 'none', pointerEvents: 'none' }}>
@@ -460,7 +466,7 @@ export function CursorParticles(props: CursorParticleProps) {
         events={() => ({ priority: 1, enabled: false } as any)}
         frameloop={isVisible ? 'always' : 'never'}
         camera={{ position: [0, 0, 8], fov: 45 }}
-        dpr={[1, 1.5]}
+        dpr={dpr}
         gl={{
           antialias: false,
           alpha: true,
@@ -468,7 +474,7 @@ export function CursorParticles(props: CursorParticleProps) {
         }}
         style={{ background: 'transparent', pointerEvents: 'none' }}
       >
-        <ParticleTrailEngine isMobile={isMobile} {...props} />
+        <ParticleTrailEngine isMobile={isMobile} particleScale={particleScale} {...props} />
       </Canvas>
     </div>
   );

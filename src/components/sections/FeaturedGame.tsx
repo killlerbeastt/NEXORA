@@ -87,9 +87,9 @@ const FeaturedGame = memo(function FeaturedGame({ onLaunch }: FeaturedGameProps)
         />
 
         {/* Content */}
-        <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 p-8 md:p-10">
+        <div className="relative z-10 flex flex-col lg:flex-row items-center gap-8 p-6 sm:p-8 md:p-10">
           {/* Left: info */}
-          <div className="flex-1 text-center md:text-left">
+          <div className="flex-1 text-center lg:text-left w-full">
             <div className="inline-flex items-center gap-2 mb-4">
               <motion.div
                 className="w-2 h-2 rounded-full bg-[var(--cyan)]"
@@ -99,18 +99,18 @@ const FeaturedGame = memo(function FeaturedGame({ onLaunch }: FeaturedGameProps)
               <span className="font-mono text-[9px] tracking-[0.3em] text-[var(--cyan)] uppercase">Live Now</span>
             </div>
 
-            <h2 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight mb-3">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight mb-3">
               <span className="text-[var(--cyan)]">ANTI-GRAVITY</span>
               <br />
               <span className="text-[var(--text-primary)]">PAC-MAN</span>
             </h2>
 
-            <p className="text-[var(--text-secondary)] max-w-md mb-6 text-sm leading-relaxed">
+            <p className="text-[var(--text-secondary)] max-w-md mx-auto lg:mx-0 mb-6 text-xs sm:text-sm leading-relaxed">
               Classic maze gameplay reimagined. Toggle anti-gravity to phase through walls,
               escape ghosts, and defy physics in this cyberpunk arcade experience.
             </p>
 
-            <div className="flex flex-wrap gap-2 mb-8 justify-center md:justify-start">
+            <div className="flex flex-wrap gap-2 mb-8 justify-center lg:justify-start">
               {['←→↑↓ Move', 'SPACE Float', 'Mobile Touch'].map(ctrl => (
                 <span
                   key={ctrl}
@@ -122,13 +122,13 @@ const FeaturedGame = memo(function FeaturedGame({ onLaunch }: FeaturedGameProps)
               ))}
             </div>
 
-            {/* CTA button */}
+            {/* CTA button (Full width minimum height 48px on mobile, auto width on tablet/desktop) */}
             <motion.button
               onClick={handleLaunch}
-              className="relative group/btn overflow-hidden rounded-xl px-8 py-3.5 font-bold text-sm tracking-widest z-20 cursor-pointer pointer-events-auto"
+              className="relative group/btn overflow-hidden rounded-xl w-full sm:w-auto min-h-[48px] px-8 py-3.5 font-bold text-sm tracking-widest z-20 cursor-pointer pointer-events-auto flex items-center justify-center gap-2.5 active:scale-95 transition-all shadow-[0_0_25px_rgba(0,240,255,0.25)]"
               style={{
-                background: 'rgba(0, 240, 255, 0.12)',
-                border: '1px solid rgba(0, 240, 255, 0.4)',
+                background: 'rgba(0, 240, 255, 0.15)',
+                border: '1px solid rgba(0, 240, 255, 0.45)',
                 color: 'var(--cyan)',
               }}
               whileHover={{ scale: 1.03 }}
@@ -139,14 +139,14 @@ const FeaturedGame = memo(function FeaturedGame({ onLaunch }: FeaturedGameProps)
                 style={{ background: 'linear-gradient(90deg, transparent, rgba(0,240,255,0.2), transparent)' }} />
               <span className="relative z-10 flex items-center gap-2">
                 <span className="text-xl">▶</span>
-                PLAY NOW
+                <span>PLAY NOW</span>
               </span>
             </motion.button>
           </div>
 
           {/* Right: animated preview */}
           <div
-            className="w-full md:w-72 h-48 md:h-64 rounded-2xl flex items-center justify-center relative overflow-hidden shrink-0 pointer-events-none"
+            className="w-full lg:w-80 h-48 sm:h-56 md:h-64 rounded-2xl flex items-center justify-center relative overflow-hidden shrink-0 pointer-events-none"
             style={{
               background: 'rgba(0, 0, 0, 0.4)',
               border: '1px solid rgba(0, 240, 255, 0.12)',

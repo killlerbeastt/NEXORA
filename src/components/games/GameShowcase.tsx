@@ -66,7 +66,7 @@ const GameShowcase = memo(function GameShowcase() {
   const gridGames = GAMES.slice(1); // flappy + coming soon games
 
   return (
-    <section id="games" className="relative pt-0 pb-32 px-6 overflow-hidden">
+    <section id="games" className="relative pt-0 pb-32 px-4 sm:px-6 overflow-hidden">
       {/* ── Ambient background particles ──────────────── */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {AMBIENT.map(p => (
@@ -114,11 +114,11 @@ const GameShowcase = memo(function GameShowcase() {
             <SectionDivider color="var(--cyan)" />
           </div>
 
-          <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight">
+          <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight">
             <span className="text-[var(--text-primary)]">The </span>
             <span className="gradient-text">Arcade</span>
           </h2>
-          <p className="mt-4 text-[var(--text-secondary)] max-w-md mx-auto text-sm leading-relaxed">
+          <p className="mt-4 text-[var(--text-secondary)] max-w-md mx-auto text-xs sm:text-sm leading-relaxed">
             Choose your challenge. Games run fullscreen right here —
             no installs, no popups.
           </p>
@@ -133,7 +133,7 @@ const GameShowcase = memo(function GameShowcase() {
         <FeaturedGame onLaunch={launchHandlers[featuredGame.id]} />
 
         {/* ── Grid: Flappy Bird (full-width) + Coming Soon 2-col ── */}
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
           {/* Flappy Bird — full width */}
           <div className="grid grid-cols-1">
             <GameCard
@@ -144,8 +144,8 @@ const GameShowcase = memo(function GameShowcase() {
             />
           </div>
 
-          {/* Coming Soon — 2 columns */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
+          {/* Coming Soon — 2 columns on tablet/desktop, single stacked column on mobile (`grid-cols-1 md:grid-cols-2`) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-10">
             {gridGames.slice(1).map((game, i) => (
               <GameCard
                 key={game.id}

@@ -59,7 +59,7 @@ const CoinShowcase = memo(function CoinShowcase() {
   return (
     <section
       id="coin-showcase"
-      className="relative py-28 px-6 overflow-hidden"
+      className="relative py-16 sm:py-24 px-4 sm:px-6 overflow-hidden"
     >
       {/* ── Background atmosphere ──────────────────── */}
       <div className="absolute inset-0 pointer-events-none">
@@ -104,7 +104,7 @@ const CoinShowcase = memo(function CoinShowcase() {
 
         {/* ── LEFT: Text panel ───────────────────────── */}
         <motion.div
-          className="flex-1 order-2 lg:order-1 text-center lg:text-left lg:pr-12"
+          className="flex-1 order-2 lg:order-1 text-center lg:text-left lg:pr-12 w-full"
           variants={stagger}
           initial="hidden"
           whileInView="visible"
@@ -132,7 +132,7 @@ const CoinShowcase = memo(function CoinShowcase() {
           <motion.h2
             variants={fadeUp}
             className="font-bold tracking-tight leading-tight mb-5"
-            style={{ fontSize: 'clamp(2.6rem, 6vw, 5rem)' }}
+            style={{ fontSize: 'clamp(2.2rem, 6vw, 4.8rem)' }}
           >
             <span className="text-[var(--text-primary)]">Your </span>
             <span style={{ color: GOLD, textShadow: `0 0 40px rgba(212,168,67,0.4)` }}>
@@ -151,7 +151,7 @@ const CoinShowcase = memo(function CoinShowcase() {
           {/* Body text */}
           <motion.p
             variants={fadeUp}
-            className="text-sm text-[var(--text-secondary)] leading-relaxed mb-10 max-w-sm mx-auto lg:mx-0"
+            className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed mb-10 max-w-sm mx-auto lg:mx-0"
           >
             Every great arcade has a token. Ours is cinematic, interactive, and fully
             browser-native — powered by React Three Fiber with PBR gold shading,
@@ -211,7 +211,7 @@ const CoinShowcase = memo(function CoinShowcase() {
 
         {/* ── RIGHT: 3D coin ─────────────────────────── */}
         <motion.div
-          className="flex-1 order-1 lg:order-2 flex items-center justify-center"
+          className="flex-1 order-1 lg:order-2 flex items-center justify-center w-full"
           initial={{ opacity: 0, scale: 0.85, y: 20 }}
           whileInView={{ opacity: 1, scale: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
@@ -223,7 +223,7 @@ const CoinShowcase = memo(function CoinShowcase() {
               className="absolute bottom-0 left-1/2 -translate-x-1/2 w-48 h-8 rounded-full blur-2xl"
               style={{ background: 'rgba(212,168,67,0.25)' }}
             />
-            <GoldCoin3D className="w-72 h-72 md:w-[380px] md:h-[380px] lg:w-[480px] lg:h-[480px]" />
+            <GoldCoin3D className="w-64 h-64 sm:w-72 sm:h-72 md:w-[380px] md:h-[380px] lg:w-[480px] lg:h-[480px]" />
           </div>
         </motion.div>
       </div>

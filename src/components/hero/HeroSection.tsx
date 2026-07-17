@@ -26,6 +26,7 @@ const RobotScene = dynamic(() => import('./RobotScene'), {
 import DeveloperSignature from './DeveloperSignature';
 
 const HeroHUDPanels = dynamic(() => import('./HeroHUDPanels'), { ssr: false });
+const MobileHeroHUDRow = dynamic(() => import('./HeroHUDPanels').then(mod => mod.MobileHeroHUDRow), { ssr: false });
 
 /* ── Deterministic foreground dust particles ─────────────────── */
 const DUST = Array.from({ length: 24 }, (_, i) => ({
@@ -118,15 +119,14 @@ const HeroSection = memo(function HeroSection() {
         <HeroHUDPanels />
       </div>
 
-      {/* ── Split title: ARCADE (left) + HUB (right) ── */}
-      {/* ARCADE — bottom-left */}
+      {/* ── DESKTOP & TABLET: Split title (`hidden md:block`) ── */}
       <motion.div
-        className="absolute z-[4] bottom-[22%] left-0 right-0 pointer-events-none"
+        className="hidden md:block absolute z-[4] bottom-[22%] left-0 right-0 pointer-events-none"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1.2, delay: 0.4 }}
       >
-        <div className="relative max-w-7xl mx-auto px-6 flex items-end justify-between">
+        <div className="relative max-w-7xl mx-auto px-6 lg:px-8 flex items-end justify-between">
           {/* Left: ARCADE */}
           <motion.div
             initial={{ opacity: 0, x: -60 }}
@@ -139,7 +139,7 @@ const HeroSection = memo(function HeroSection() {
             <h1 className="font-bold leading-[0.85] tracking-tighter">
               <span
                 className="gradient-text block"
-                style={{ fontSize: 'clamp(4rem, 11vw, 9rem)' }}
+                style={{ fontSize: 'clamp(3.5rem, 6.5vw, 9rem)' }}
               >
                 ARCADE
               </span>
@@ -156,7 +156,7 @@ const HeroSection = memo(function HeroSection() {
             <h1 className="font-bold leading-[0.85] tracking-tighter">
               <span
                 className="text-[var(--text-primary)] opacity-90 block"
-                style={{ fontSize: 'clamp(4rem, 11vw, 9rem)' }}
+                style={{ fontSize: 'clamp(3.5rem, 6.5vw, 9rem)' }}
               >
                 HUB
               </span>
@@ -169,9 +169,9 @@ const HeroSection = memo(function HeroSection() {
         </div>
       </motion.div>
 
-      {/* ── Bottom center: glass panel + scroll ──────── */}
+      {/* ── DESKTOP & TABLET: Bottom center glass panel (`hidden md:flex`) ── */}
       <motion.div
-        className="absolute z-[4] bottom-0 left-0 right-0 pb-8 flex flex-col items-center gap-5 pointer-events-none"
+        className="hidden md:flex absolute z-[4] bottom-0 left-0 right-0 pb-8 flex-col items-center gap-5 pointer-events-none"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -187,7 +187,7 @@ const HeroSection = memo(function HeroSection() {
         {/* Floating glass info panel */}
         <motion.div
           variants={fadeUpVariants}
-          className="relative rounded-2xl px-5 py-3 flex items-center gap-4 mx-6"
+          className="relative rounded-2xl px-5 py-3 flex items-center gap-4 mx-6 pointer-events-auto"
           style={{
             background: 'rgba(10, 11, 20, 0.6)',
             backdropFilter: 'blur(20px)',
@@ -254,6 +254,67 @@ const HeroSection = memo(function HeroSection() {
           </motion.div>
         </motion.div>
       </motion.div>
+
+      {/* ── MOBILE ONLY: Dedicated Vertical Hero Stack (`flex md:hidden`) ── */}
+      <div className="flex md:hidden flex-col items-center justify-between text-center px-6 pt-24 pb-8 h-full z-[4] relative pointer-events-none">
+        {/* Top spacer allowing 3D robot to stay centered and unblocked */}
+        <div className="h-[260px] sm:h-[320px] w-full shrink-0" />
+
+        {/* Center content stack */}
+        <div className="flex flex-col items-center w-full my-auto">
+          <MobileHeroHUDRow />
+
+          <h1 className="font-bold leading-[0.9] tracking-tighter my-2">
+            <span
+              className="gradient-text block"
+              style={{ fontSize: 'clamp(2.8rem, 11vw, 4.2rem)' }}
+            >
+              ARCADE HUB
+            </span>
+          </h1>
+
+          <div className="mt-1 mb-3">
+            <DeveloperSignature />
+          </div>
+
+          <p className="text-xs text-[var(--text-secondary)] max-w-[300px] leading-relaxed mb-6">
+            A cinematic playground where classic arcade meets cutting-edge design.
+          </p>
+
+          {/* Touch-native full-width action buttons (`pointer-events-auto min-h-[48px]`) */}
+          <div className="w-full flex flex-col sm:flex-row gap-3.5 pointer-events-auto">
+            <a
+              href="#games"
+              className="w-full min-h-[48px] rounded-xl bg-[var(--cyan)] text-black font-bold text-sm tracking-wider uppercase shadow-[0_0_20px_rgba(0,240,255,0.35)] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>PLAY NOW</span>
+              <span className="text-base">▶</span>
+            </a>
+            <a
+              href="#games"
+              className="w-full min-h-[48px] rounded-xl border border-[rgba(255,255,255,0.2)] bg-[rgba(255,255,255,0.06)] text-[var(--text-primary)] font-semibold text-sm tracking-wider uppercase active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>EXPLORE</span>
+              <span className="text-base">↓</span>
+            </a>
+          </div>
+        </div>
+
+        {/* Bottom scroll pulse indicator */}
+        <div className="flex flex-col items-center gap-1.5 mt-4">
+          <motion.div
+            className="w-4 h-6 rounded-full border border-[var(--text-muted)] flex items-start justify-center p-1"
+            animate={{ opacity: [0.3, 0.7, 0.3] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <motion.div
+              className="w-1 h-1 rounded-full bg-[var(--cyan)]"
+              animate={{ y: [0, 6, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </motion.div>
+        </div>
+      </div>
     </section>
   );
 });

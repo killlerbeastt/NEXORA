@@ -19,7 +19,7 @@ const STATS = [
 const StatsStrip = memo(function StatsStrip() {
   return (
     <motion.section
-      className="relative py-16 px-6 overflow-hidden"
+      className="relative py-12 sm:py-16 px-4 sm:px-6 overflow-hidden"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ once: true, margin: '-60px' }}
@@ -37,7 +37,7 @@ const StatsStrip = memo(function StatsStrip() {
 
       {/* Stats row */}
       <div className="max-w-4xl mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8">
           {STATS.map((stat, i) => (
             <motion.div
               key={stat.label}
@@ -48,7 +48,7 @@ const StatsStrip = memo(function StatsStrip() {
               transition={{ duration: 0.6, delay: i * 0.1 }}
             >
               <span
-                className="font-bold text-3xl md:text-4xl font-mono tracking-tight"
+                className="font-bold text-2xl sm:text-3xl md:text-4xl font-mono tracking-tight"
                 style={{ color: stat.color, textShadow: `0 0 20px ${stat.color}60` }}
               >
                 {stat.value}

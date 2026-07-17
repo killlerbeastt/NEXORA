@@ -24,10 +24,12 @@ import { getCursorState } from '@/hooks/useCursor';
 import { ANIMATION } from '@/lib/constants';
 import { lerp } from '@/lib/utils';
 
+import { useDeviceQuality } from '@/hooks/useDeviceQuality';
+
 const CHROMATIC_OFFSET = new THREE.Vector2(0.0006, 0.0006);
 
 /* ── Animated Camera ─────────────────────────────────────────── */
-function AnimatedCamera() {
+function AnimatedCamera({ isTouch }: { isTouch?: boolean }) {
   const cameraTarget = useRef({ x: 0, y: 0 });
 
   useFrame((state) => {
@@ -37,9 +39,14 @@ function AnimatedCamera() {
     // Camera breathing
     const breathY = Math.sin(t * (Math.PI * 2 / ANIMATION.cameraBreathPeriod)) * ANIMATION.cameraBreathAmp;
 
-    // Cursor-responsive subtle tilt
-    cameraTarget.current.x = lerp(cameraTarget.current.x, cursor.nx * ANIMATION.cameraTiltMax, ANIMATION.cameraTiltLerp);
-    cameraTarget.current.y = lerp(cameraTarget.current.y, cursor.ny * ANIMATION.cameraTiltMax, ANIMATION.cameraTiltLerp);
+    // On touch devices, replace cursor tracking with gentle automated sway
+    if (isTouch) {
+      cameraTarget.current.x = Math.sin(t * 0.4) * 0.15;
+      cameraTarget.current.y = Math.cos(t * 0.3) * 0.1;
+    } else {
+      cameraTarget.current.x = lerp(cameraTarget.current.x, cursor.nx * ANIMATION.cameraTiltMax, ANIMATION.cameraTiltLerp);
+      cameraTarget.current.y = lerp(cameraTarget.current.y, cursor.ny * ANIMATION.cameraTiltMax, ANIMATION.cameraTiltLerp);
+    }
 
     state.camera.position.x = cameraTarget.current.x * 0.5;
     state.camera.position.y = 0.3 + breathY + cameraTarget.current.y * 0.3;
@@ -63,6 +70,7 @@ function LoadingFallback() {
 export default function RobotScene() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(true);
+  const quality = useDeviceQuality();
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -87,9 +95,9 @@ export default function RobotScene() {
           near: 0.1,
           far: 100,
         }}
-        dpr={[1, 1.5]}
+        dpr={quality.dpr}
         gl={{
-          antialias: true,
+          antialias: quality.tier !== 'low',
           toneMapping: THREE.ACESFilmicToneMapping,
           toneMappingExposure: 1.1,
           alpha: true,
@@ -107,7 +115,7 @@ export default function RobotScene() {
 
         <Suspense fallback={<LoadingFallback />}>
           {/* Camera animation system */}
-          <AnimatedCamera />
+          <AnimatedCamera isTouch={quality.isTouch || quality.isMobile} />
 
           {/* Cinematic lighting rig */}
           <Lighting />
@@ -115,30 +123,37 @@ export default function RobotScene() {
           {/* Immersive environment */}
           <SceneEnvironment />
 
-          {/* THE ROBOT — the soul of the site */}
-          <Robot />
+          {/* THE ROBOT — scaled for desktop (1.0), tablet (0.8), or mobile (0.6) */}
+          <group scale={quality.robotScale}>
+            <Robot />
+          </group>
 
-          {/* Post-processing effects */}
-          <EffectComposer multisampling={0}>
-            <Bloom
-              intensity={0.6}
-              luminanceThreshold={0.7}
-              luminanceSmoothing={0.3}
-              mipmapBlur
-            />
-            <Vignette
-              eskil={false}
-              offset={0.15}
-              darkness={0.7}
-              blendFunction={BlendFunction.NORMAL}
-            />
-            <ChromaticAberration
-              offset={CHROMATIC_OFFSET}
-              blendFunction={BlendFunction.NORMAL}
-              radialModulation={true}
-              modulationOffset={0.5}
-            />
-          </EffectComposer>
+          {/* Post-processing effects (adaptive based on hardware tier) */}
+          {quality.tier !== 'low' ? (
+            quality.enableBloom ? (
+              <EffectComposer multisampling={0}>
+                <Bloom
+                  intensity={quality.tier === 'high' ? 0.6 : 0.35}
+                  luminanceThreshold={0.7}
+                  luminanceSmoothing={0.3}
+                  mipmapBlur
+                />
+                <Vignette
+                  eskil={false}
+                  offset={0.15}
+                  darkness={0.7}
+                />
+              </EffectComposer>
+            ) : (
+              <EffectComposer multisampling={0}>
+                <Vignette
+                  eskil={false}
+                  offset={0.15}
+                  darkness={0.7}
+                />
+              </EffectComposer>
+            )
+          ) : null}
 
           <Preload all />
         </Suspense>

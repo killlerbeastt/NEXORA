@@ -214,7 +214,7 @@ const GameCard = memo(function GameCard({
 
           {/* Game preview area */}
           <div
-            className="relative w-full h-40 rounded-xl mb-6 overflow-hidden flex items-center justify-center shrink-0 pointer-events-none"
+            className="relative w-full aspect-video h-40 sm:h-44 md:h-48 rounded-xl mb-6 overflow-hidden flex items-center justify-center shrink-0 pointer-events-none"
             style={{ border: `1px solid ${color}18` }}
           >
             {id === 'pacman' && <PacmanPreview color={color} isHovered={isHovered} />}
@@ -225,14 +225,14 @@ const GameCard = memo(function GameCard({
           </div>
 
           {/* Title */}
-          <h3 className="text-2xl md:text-3xl font-bold leading-tight mb-2">
+          <h3 className="text-2xl sm:text-3xl font-bold leading-tight mb-2">
             <span style={{ color }}>{title}</span>
             <br />
             <span className="text-[var(--text-primary)]">{subtitle}</span>
           </h3>
 
           {/* Description */}
-          <p className="text-sm text-[var(--text-secondary)] mt-2 mb-4 leading-relaxed line-clamp-2 flex-1">
+          <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-2 mb-4 leading-relaxed line-clamp-2 flex-1">
             {description}
           </p>
 
@@ -248,11 +248,11 @@ const GameCard = memo(function GameCard({
             ))}
           </div>
 
-          {/* Launch button */}
+          {/* Launch button (min-h-[48px] for effortless tap on touch devices) */}
           <button
             onClick={handleLaunch}
             disabled={status !== 'playable'}
-            className="group/btn relative z-20 w-full py-3 rounded-xl font-bold text-sm tracking-wider overflow-hidden transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed pointer-events-auto cursor-pointer"
+            className="group/btn relative z-20 w-full min-h-[48px] py-3 rounded-xl font-bold text-sm tracking-wider overflow-hidden transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed pointer-events-auto cursor-pointer active:scale-95 flex items-center justify-center"
             style={{
               background: status === 'playable' ? `${color}12` : 'transparent',
               border: `1px solid ${color}${status === 'playable' ? '45' : '18'}`,
