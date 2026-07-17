@@ -119,8 +119,8 @@ const GameShowcase = memo(function GameShowcase() {
             <span className="gradient-text">Arcade</span>
           </h2>
           <p className="mt-4 text-[var(--text-secondary)] max-w-md mx-auto text-sm leading-relaxed">
-            Choose your challenge. Launch directly inside our cinematic
-            full-screen overlay or pop out to a dedicated arcade window.
+            Choose your challenge. Games run fullscreen right here —
+            no installs, no popups.
           </p>
         </motion.div>
 
