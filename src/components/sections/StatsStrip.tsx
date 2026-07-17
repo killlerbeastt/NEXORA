@@ -26,7 +26,7 @@ const StatsStrip = memo(function StatsStrip() {
       transition={{ duration: 0.8 }}
     >
       {/* Top glowing line */}
-      <div className="relative h-px mb-10">
+      <div className="relative h-px mb-10 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--cyan)] to-transparent opacity-30" />
         <motion.div
           className="absolute top-0 h-full w-24 bg-gradient-to-r from-transparent via-[var(--cyan)] to-transparent"
@@ -62,7 +62,7 @@ const StatsStrip = memo(function StatsStrip() {
       </div>
 
       {/* Bottom glowing line */}
-      <div className="relative h-px mt-10">
+      <div className="relative h-px mt-10 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--violet)] to-transparent opacity-20" />
         <motion.div
           className="absolute top-0 h-full w-24 bg-gradient-to-r from-transparent via-[var(--violet)] to-transparent"

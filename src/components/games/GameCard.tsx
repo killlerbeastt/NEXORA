@@ -126,7 +126,7 @@ const GameCard = memo(function GameCard({
         style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
       >
         {/* ── Unique game background ────────────────────── */}
-        <div className="absolute inset-0 rounded-2xl overflow-hidden">
+        <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
           {/* Base bg */}
           <div className="absolute inset-0" style={{ background: identity.bg }} />
           {/* Atmosphere glow */}
@@ -151,7 +151,7 @@ const GameCard = memo(function GameCard({
 
         {/* ── Animated gradient border ──────────────────── */}
         <div
-          className="absolute inset-0 rounded-2xl p-px opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          className="absolute inset-0 rounded-2xl p-px opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
           style={{
             background: `linear-gradient(135deg, ${color}70, transparent 40%, transparent 60%, ${color}50)`,
           }}
@@ -168,15 +168,15 @@ const GameCard = memo(function GameCard({
         {/* ── Game-specific scan line for playable ──────── */}
         {status === 'playable' && (
           <motion.div
-            className="absolute left-0 right-0 h-px z-[1] opacity-0 group-hover:opacity-30 transition-opacity duration-500"
+            className="absolute left-0 right-0 h-px z-[1] opacity-0 group-hover:opacity-30 transition-opacity duration-500 pointer-events-none"
             style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }}
             animate={isHovered ? { top: ['0%', '100%'] } : {}}
             transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
           />
         )}
 
-        {/* ── Card body ─────────────────────────────────── */}
-        <div className="relative z-[2] p-6 md:p-7 h-full flex flex-col" style={{ transform: 'translateZ(0)' }}>
+        {/* ── Content hierarchy ─────────────────────────── */}
+        <div className="relative z-10 flex flex-col h-full p-6 md:p-8">
 
           {/* Identity label + status badge */}
           <div className="flex items-center justify-between mb-5">
@@ -214,7 +214,7 @@ const GameCard = memo(function GameCard({
 
           {/* Game preview area */}
           <div
-            className="relative w-full h-40 rounded-xl mb-6 overflow-hidden flex items-center justify-center shrink-0"
+            className="relative w-full h-40 rounded-xl mb-6 overflow-hidden flex items-center justify-center shrink-0 pointer-events-none"
             style={{ border: `1px solid ${color}18` }}
           >
             {id === 'pacman' && <PacmanPreview color={color} isHovered={isHovered} />}
@@ -252,7 +252,7 @@ const GameCard = memo(function GameCard({
           <button
             onClick={handleLaunch}
             disabled={status !== 'playable'}
-            className="group/btn relative w-full py-3 rounded-xl font-bold text-sm tracking-wider overflow-hidden transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="group/btn relative z-20 w-full py-3 rounded-xl font-bold text-sm tracking-wider overflow-hidden transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed pointer-events-auto cursor-pointer"
             style={{
               background: status === 'playable' ? `${color}12` : 'transparent',
               border: `1px solid ${color}${status === 'playable' ? '45' : '18'}`,
@@ -261,7 +261,7 @@ const GameCard = memo(function GameCard({
             onMouseEnter={() => status === 'playable' && audio.hoverTick()}
           >
             <span
-              className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700"
+              className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 pointer-events-none"
               style={{ background: `linear-gradient(90deg, transparent, ${color}25, transparent)` }}
             />
             <span className="relative z-10 flex items-center justify-center gap-2">

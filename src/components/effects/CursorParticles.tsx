@@ -455,8 +455,9 @@ export function CursorParticles(props: CursorParticleProps) {
   if (isTouchOnly) return null;
 
   return (
-    <div className={`fixed inset-0 pointer-events-none z-[9997] ${props.className || ''}`} style={{ touchAction: 'none' }}>
+    <div className={`fixed inset-0 pointer-events-none z-[9997] ${props.className || ''}`} style={{ touchAction: 'none', pointerEvents: 'none' }}>
       <Canvas
+        events={() => ({ priority: 1, enabled: false } as any)}
         frameloop={isVisible ? 'always' : 'never'}
         camera={{ position: [0, 0, 8], fov: 45 }}
         dpr={[1, 1.5]}
@@ -465,7 +466,7 @@ export function CursorParticles(props: CursorParticleProps) {
           alpha: true,
           powerPreference: 'high-performance',
         }}
-        style={{ background: 'transparent' }}
+        style={{ background: 'transparent', pointerEvents: 'none' }}
       >
         <ParticleTrailEngine isMobile={isMobile} {...props} />
       </Canvas>

@@ -47,7 +47,7 @@ const Navigation = memo(function Navigation() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -100, opacity: 0 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] as const }}
-          className={`fixed top-0 left-0 right-0 z-50 px-6 py-4 transition-colors duration-500 ${
+          className={`fixed top-0 left-0 right-0 z-50 px-6 py-4 transition-colors duration-500 pointer-events-none ${
             scrolled ? 'glass-strong' : ''
           }`}
         >

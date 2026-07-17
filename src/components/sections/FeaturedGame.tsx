@@ -50,7 +50,7 @@ const FeaturedGame = memo(function FeaturedGame({ onLaunch }: FeaturedGameProps)
         }}
       >
         {/* Animated background */}
-        <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {/* Cyan grid lines */}
           {Array.from({ length: 8 }, (_, i) => (
             <div
@@ -82,7 +82,7 @@ const FeaturedGame = memo(function FeaturedGame({ onLaunch }: FeaturedGameProps)
 
         {/* Hover border glow */}
         <div
-          className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
           style={{ boxShadow: 'inset 0 0 40px rgba(0, 240, 255, 0.08), 0 0 60px rgba(0, 240, 255, 0.12)' }}
         />
 
@@ -125,7 +125,7 @@ const FeaturedGame = memo(function FeaturedGame({ onLaunch }: FeaturedGameProps)
             {/* CTA button */}
             <motion.button
               onClick={handleLaunch}
-              className="relative group/btn overflow-hidden rounded-xl px-8 py-3.5 font-bold text-sm tracking-widest"
+              className="relative group/btn overflow-hidden rounded-xl px-8 py-3.5 font-bold text-sm tracking-widest z-20 cursor-pointer pointer-events-auto"
               style={{
                 background: 'rgba(0, 240, 255, 0.12)',
                 border: '1px solid rgba(0, 240, 255, 0.4)',
@@ -135,7 +135,7 @@ const FeaturedGame = memo(function FeaturedGame({ onLaunch }: FeaturedGameProps)
               whileTap={{ scale: 0.97 }}
               onMouseEnter={() => audio.hoverTick()}
             >
-              <span className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700"
+              <span className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 pointer-events-none"
                 style={{ background: 'linear-gradient(90deg, transparent, rgba(0,240,255,0.2), transparent)' }} />
               <span className="relative z-10 flex items-center gap-2">
                 <span className="text-xl">▶</span>
@@ -146,7 +146,7 @@ const FeaturedGame = memo(function FeaturedGame({ onLaunch }: FeaturedGameProps)
 
           {/* Right: animated preview */}
           <div
-            className="w-full md:w-72 h-48 md:h-64 rounded-2xl flex items-center justify-center relative overflow-hidden shrink-0"
+            className="w-full md:w-72 h-48 md:h-64 rounded-2xl flex items-center justify-center relative overflow-hidden shrink-0 pointer-events-none"
             style={{
               background: 'rgba(0, 0, 0, 0.4)',
               border: '1px solid rgba(0, 240, 255, 0.12)',

@@ -77,8 +77,9 @@ export default function RobotScene() {
   }, []);
 
   return (
-    <div ref={containerRef} className="absolute inset-0 w-full h-full">
+    <div ref={containerRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ pointerEvents: 'none' }}>
       <Canvas
+        events={() => ({ priority: 1, enabled: false } as any)}
         frameloop={inView ? 'always' : 'never'}
         camera={{
           position: [0, 0.3, 4.2],
@@ -99,6 +100,7 @@ export default function RobotScene() {
           inset: 0,
           width: '100%',
           height: '100%',
+          pointerEvents: 'none',
         }}
       >
         <AdaptiveDpr pixelated />

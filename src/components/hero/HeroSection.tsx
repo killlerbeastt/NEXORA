@@ -72,7 +72,7 @@ const HeroSection = memo(function HeroSection() {
       id="hero"
     >
       {/* ── 3D Robot Canvas (background layer) ──────────── */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 pointer-events-none">
         <RobotScene />
       </div>
 

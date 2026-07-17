@@ -86,7 +86,7 @@ const CoinShowcase = memo(function CoinShowcase() {
       </div>
 
       {/* ── Glowing horizontal divider top ─────────── */}
-      <div className="relative h-px mb-16 max-w-6xl mx-auto">
+      <div className="relative h-px mb-16 max-w-6xl mx-auto pointer-events-none">
         <div
           className="absolute inset-0"
           style={{ background: 'linear-gradient(90deg, transparent, rgba(212,168,67,0.40), transparent)' }}
@@ -229,7 +229,7 @@ const CoinShowcase = memo(function CoinShowcase() {
       </div>
 
       {/* ── Bottom divider ──────────────────────────── */}
-      <div className="relative h-px mt-16 max-w-6xl mx-auto">
+      <div className="relative h-px mt-16 max-w-6xl mx-auto pointer-events-none">
         <div
           className="absolute inset-0"
           style={{ background: 'linear-gradient(90deg, transparent, rgba(168,85,247,0.25), transparent)' }}

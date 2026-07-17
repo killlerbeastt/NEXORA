@@ -96,9 +96,10 @@ export default function CursorGlow() {
           y: springY,
           translateX: '-50%',
           translateY: '-50%',
+          pointerEvents: 'none',
         }}
       >
-        <div className="w-2 h-2 rounded-full bg-white transition-all duration-200" />
+        <div className="w-2 h-2 rounded-full bg-white transition-all duration-200 pointer-events-none" />
       </motion.div>
 
       {/* Ring (outer) */}
@@ -110,6 +111,7 @@ export default function CursorGlow() {
           y: springY,
           translateX: '-50%',
           translateY: '-50%',
+          pointerEvents: 'none',
         }}
       >
         <div
